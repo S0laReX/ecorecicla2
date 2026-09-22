@@ -5,6 +5,10 @@
   "scripts": {
     "start": "node --env-file=.env src/server.js",
     "migrate": "node --env-file=.env scripts/migrate.cjs",
+    "setup:local": "node scripts/setup-local.cjs",
+    "seed:admin": "node --env-file=.env scripts/seed-admin.cjs",
+    "test:integration": "node --env-file=.env test/integration.mysql.cjs",
+    "dev": "node --watch --env-file=.env src/server.js",
     "test": "node --test test/*.test.js",
     "typecheck": "tsc -p jsconfig.json"
   },

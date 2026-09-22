@@ -1,18 +1,19 @@
-# Verificación de la entrega
+# Verificación del Sprint 1
 
-Fecha: 22 de septiembre de 2026.
+Entorno: Node.js 22.17.0, MySQL 8.0.46, Next.js 16.3.5. Fecha: 22 de septiembre de 2026.
 
-Actualización de referencias: se revisó `EcoRecicla_Requerimientos (1).docx` como fuente vigente de requerimientos y cuestionario. Se corrigió la documentación y se retiraron las extracciones anteriores de las referencias de trabajo. El código no cambió; los resultados siguientes corresponden a su verificación previa. Los requisitos adicionales pendientes están registrados en README.
-
-| Comprobación ejecutada | Resultado |
+| Verificación | Resultado |
 |---|---|
-| Backend `npm run typecheck` con JavaScript/JSDoc y `strict: true` | Correcto |
-| Backend `npm test` | 6 pruebas correctas, 0 fallidas |
-| Frontend `npm run typecheck` con TypeScript estricto | Correcto |
-| Frontend `npm run build` | Correcto; Next.js 16.3.5, generación estática de `/` |
+| Backend JavaScript/JSDoc estricto | `npm run typecheck`, correcto |
+| Frontend TypeScript estricto | `npm run typecheck`, correcto |
+| Pruebas unitarias y HTTP con conexión simulada | 9 correctas |
+| Integración contra MySQL temporal real | 16 comprobaciones correctas |
+| Compilación Next.js de producción | Correcta; incluye todas las rutas de Sprint 1 |
+| Navegador local | Login, redirección por rol, alta con foto, listado, edición, detalle y logout verificados |
+| Responsive | Panel y detalle revisados en escritorio; detalle, navegación y formulario empresarial revisados a 390×844 |
 
-Pruebas: rechazo de mass assignment y cantidades inválidas; empresa pendiente permitida y suspensión/rechazo/ADMIN/sesión revocada bloqueados; procesamiento real de PNG a JPEG y rechazo de contenido falso; UPDATE y borrado con filtros de propietario/estado; HTTP 401 con contrato JSON para tokens ausentes, expirados o de otra audiencia; HTTP 201 con commit y HTTP 500 seguro con rollback/release.
+La suite de MySQL comprueba registro, duplicados, documento privado, sesión, separación por rol, renovación y replay, logout, bloqueo de empresa pendiente en dashboard, alta con JPEG y DECIMAL real, paginación, propiedad, whitelist, bloqueo de estados aceptada/confirmada, carrera aceptación/edición bajo bloqueo de filas, eliminación lógica, suspensión/rechazo, recuperación de un solo uso y revocación tras reset.
 
-Las transacciones SQL se prueban con una conexión simulada. No se ejecutó el DDL sobre el servicio MySQL existente ni se modificaron bases del equipo. Falta una base de pruebas y sus credenciales para comprobar restricciones, round-trip DECIMAL/BLOB, aislamiento y carreras contra aceptación/suspensión en MySQL real. No se realizó validación visual en navegador ni una prueba completa con login real; US2/US3 no forman parte de los archivos funcionales solicitados en este corte.
+El enlace de recuperación se prueba con el canal local de archivos privados. No se enviaron correos reales ni se verificó un servidor SMTP externo. No se prueba concurrencia a escala de producción. Los endpoints y pantallas de recolecciones, puntos y administración de empresas quedan fuera de las épicas de este sprint.
 
-Se incluyen `package-lock.json` de ambos paquetes para reproducir las versiones instaladas con `npm ci`. El ZIP excluye dependencias y archivos de compilación.
+En navegador se usaron datos e imagen sintéticos. Se verificó el diálogo de eliminación y su cancelación; la eliminación efectiva y los bloqueos por estado se verificaron en la suite HTTP/MySQL. La recuperación se verificó por API y almacenamiento, sin cambiar contraseñas del usuario del equipo.

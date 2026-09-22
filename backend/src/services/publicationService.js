@@ -6,6 +6,8 @@ const CustomModelError = require('../utils/customModelError');
 const {AuditService} = require('./auditService');
 const {LogCategory} = require('../utils/logCategories');
 const {lockSessionUser}=require('./sessionPolicy');
+const {transaction}=require('./transactionService');
+const {publicationFieldsSchema}=require('../schemas/publicationSchema');
 /** AUTHORIZE PUBLICATION CREATION
  * Pending companies may publish their own material (backlog US4).
  * @param {import('../models/User').UserContext|null} user @param {number} tokenVersion
@@ -59,4 +61,36 @@ async function createPublicationForUser(auth,fields,file) {
     throw error;
   } finally { connection.release(); }
 }
-module.exports = {createPublicationForUser,normalizePhoto,authorizePublisher};
+/** LIST OWN PUBLICATIONS @param {import('./sessionPolicy').AuthContext} auth @param {number} page @param {number} limit */
+async function listOwnPublications(auth,page,limit){return transaction(async connection=>{
+ const user=await lockSessionUser(auth,connection);authorizePublisher(user,auth.tokenVersion);
+ const total=await Publication.readCountByOwner(user.userId,connection);const publications=await Publication.findByOwner(user.userId,page,limit,connection);
+ return {publications,meta:{total,page,limit}};
+});}
+/** RETRIEVE OWN PUBLICATION @param {import('./sessionPolicy').AuthContext} auth @param {string} publicationUUID */
+async function retrieveOwnPublication(auth,publicationUUID){return transaction(async connection=>{
+ const user=await lockSessionUser(auth,connection);authorizePublisher(user,auth.tokenVersion);
+ const publication=await Publication.findByUUID(publicationUUID,user.userId,connection);
+ if(!publication)throw new CustomModelError('Publication','Publicación no encontrada.','PUBLICATION_NOT_FOUND',404);return publication;
+});}
+/** UPDATE OWN PUBLICATION @param {import('./sessionPolicy').AuthContext} auth @param {string} publicationUUID @param {unknown} body @param {Express.Multer.File|undefined} file */
+async function updateOwnPublication(auth,publicationUUID,body,file){
+ const parsed=publicationFieldsSchema.partial().strict().safeParse(body);
+ if(!parsed.success||(!Object.keys(parsed.data).length&&!file))throw new CustomModelError('Publication','Revisa los cambios de tu publicación.');
+ const photoJpeg=file?await normalizePhoto(file):undefined;
+ return transaction(async connection=>{
+  const user=await lockSessionUser(auth,connection);authorizePublisher(user,auth.tokenVersion);
+  const existing=await Publication.findByUUID(publicationUUID,user.userId,connection);
+  if(!existing)throw new CustomModelError('Publication','Publicación no encontrada.','PUBLICATION_NOT_FOUND',404);
+  await Publication.updateByUUID(publicationUUID,user.userId,{...parsed.data,...(photoJpeg?{photoJpeg}:{})},connection);
+  return Publication.findByUUID(publicationUUID,user.userId,connection);
+ });
+}
+/** DELETE OWN AVAILABLE PUBLICATION @param {import('./sessionPolicy').AuthContext} auth @param {string} publicationUUID */
+async function deleteOwnPublication(auth,publicationUUID){return transaction(async connection=>{
+ const user=await lockSessionUser(auth,connection);authorizePublisher(user,auth.tokenVersion);
+ const existing=await Publication.findByUUID(publicationUUID,user.userId,connection);
+ if(!existing)throw new CustomModelError('Publication','Publicación no encontrada.','PUBLICATION_NOT_FOUND',404);
+ await Publication.softDeleteByUUID(publicationUUID,user.userId,connection);return {publicationUUID};
+});}
+module.exports = {createPublicationForUser,normalizePhoto,authorizePublisher,listOwnPublications,retrieveOwnPublication,updateOwnPublication,deleteOwnPublication};

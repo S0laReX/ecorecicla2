@@ -16,9 +16,11 @@ app.use('/api/auth',require('./routes/authRoutes'));
 app.use((_req,res)=>{res.status(404).json({success:false,message:'Recurso no encontrado.',errorCode:'NOT_FOUND',statusCode:404});});
 /** @type {import('express').ErrorRequestHandler} */
 const errorHandler = async (error,req,res,_next) => {
-  const normalized = error instanceof multer.MulterError
+  let normalized = error instanceof multer.MulterError
     ? new CustomModelError('Upload','Carga inválida: comprueba los campos y el archivo de hasta 5 MiB.', 'UPLOAD_INVALID',error.code==='LIMIT_FILE_SIZE'?413:422)
     : error;
+  if(error?.type==='entity.parse.failed')normalized=new CustomModelError('Request','El JSON de la solicitud no es válido.','INVALID_JSON',400);
+  if(error?.type==='entity.too.large')normalized=new CustomModelError('Request','La solicitud supera el tamaño permitido.','PAYLOAD_TOO_LARGE',413);
   const failure = apiError(normalized);
   await AuditService.logSystem(LogCategory.SECURITY,'ERROR','Request rejected','app.js','errorHandler',req.ip || null,{requestId:req.requestId,errorCode:failure.errorCode});
   return res.status(failure.statusCode).json(failure);

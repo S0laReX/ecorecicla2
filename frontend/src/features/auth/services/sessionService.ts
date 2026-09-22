@@ -10,10 +10,10 @@ function saveSession(session:Session){
  localStorage.setItem(STORAGE_KEYS.access,session.tokens.accessToken);localStorage.setItem(STORAGE_KEYS.refresh,session.tokens.refreshToken);
  localStorage.setItem(STORAGE_KEYS.userUUID,session.user.userUUID);localStorage.setItem(STORAGE_KEYS.activeProfile,session.user.roleCode);
 }
-async function decode(response:Response):Promise<unknown>{
+async function decode(response:Response,envelope=false):Promise<unknown>{
  let json:unknown;try{json=await response.json();}catch{throw new ApiRequestError(response.status,'INVALID_RESPONSE','No se pudo leer la respuesta del servidor.');}
  if(!response.ok){const parsed=errorSchema.safeParse(json);throw new ApiRequestError(response.status,parsed.success?parsed.data.errorCode:'HTTP_ERROR',parsed.success?parsed.data.message:'No se pudo completar la solicitud.');}
- return z.object({success:z.literal(true),data:z.unknown()}).parse(json).data;
+ const parsed=z.object({success:z.literal(true),data:z.unknown()}).parse(json);return envelope?json:parsed.data;
 }
 export async function publicRequest(path:string,body:unknown):Promise<unknown>{return decode(await fetch(`/api/auth/${path}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),cache:'no-store'}));}
 export async function login(email:string,password:string):Promise<User>{const session=sessionSchema.parse(await publicRequest('login',{email,password}));saveSession(session);return session.user;}
@@ -30,13 +30,13 @@ async function refreshSession(previousAccess:string|null){
  refreshing=(async()=>{if(navigator.locks)await navigator.locks.request('ecorecicla-refresh',perform);else await perform();})().finally(()=>{refreshing=null;});
  return refreshing;
 }
-export async function authenticatedRequest(path:string,init:RequestInit={}):Promise<unknown>{
+export async function authenticatedRequest(path:string,init:RequestInit={},envelope=false):Promise<unknown>{
  const token=localStorage.getItem(STORAGE_KEYS.access);
  if(!token)throw new ApiRequestError(401,'AUTH_REQUIRED','Inicia sesión para continuar.');
  const send=()=>fetch(`/api${path}`,{...init,headers:{...Object.fromEntries(new Headers(init.headers).entries()),Authorization:`Bearer ${localStorage.getItem(STORAGE_KEYS.access)}`},cache:'no-store'});
  let response=await send();
  if(response.status===401){try{await refreshSession(token);response=await send();}catch(error){if(error instanceof ApiRequestError&&error.statusCode<500)clearSession();throw error;}}
- try{return await decode(response);}catch(error){if(error instanceof ApiRequestError&&(error.statusCode===401||['ACCOUNT_SUSPENDED','COMPANY_REJECTED'].includes(error.errorCode)))clearSession();throw error;}
+ try{return await decode(response,envelope);}catch(error){if(error instanceof ApiRequestError&&(error.statusCode===401||['ACCOUNT_SUSPENDED','COMPANY_REJECTED'].includes(error.errorCode)))clearSession();throw error;}
 }
 export async function restoreSession():Promise<User|null>{if(!localStorage.getItem(STORAGE_KEYS.access))return null;return userSchema.parse(await authenticatedRequest('/auth/me'));}
 export async function logout():Promise<void>{await authenticatedRequest('/auth/logout',{method:'POST'});clearSession();}

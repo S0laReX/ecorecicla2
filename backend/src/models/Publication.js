@@ -8,7 +8,15 @@ const {LogCategory} = require('../utils/logCategories');
 /** @typedef {{publicationUUID:string,publicationMaterialType:string,publicationQuantityKg:string,publicationLocationText:string,publicationAvailabilityText:string,publicationStatus:'disponible'|'aceptada'|'confirmada',publicationPhotoDataUrl:string}} PublicationRecord */
 const source = 'Publication.js';
 const Publication = {};
-// READ: no aggregates required in this delivery.
+// READ
+/** COUNT OWN PUBLICATIONS @param {string} ownerId @param {import('mysql2/promise').PoolConnection} connection @returns {Promise<number>} */
+Publication.readCountByOwner=async(ownerId,connection)=>{
+ try{if(!ownerIdSchema.safeParse(ownerId).success)throw new CustomModelError('Publication','Identidad inválida.');
+ const publicationQuery='SELECT COUNT(P.id) AS publicationCount FROM Publication P WHERE P.ownerId = ? AND P.deletedAt IS NULL';
+ const publicationParams=[ownerId];const [publications]=await connection.execute(publicationQuery,publicationParams);
+ return Number(/** @type {import('mysql2').RowDataPacket[]} */(publications)[0].publicationCount);
+ }catch(error){await AuditService.logSystem(LogCategory.OPERATIONAL,'ERROR','Publication count failed',source,'readCountByOwner',null);throw error;}
+};
 // FIND
 /** FIND OWN PUBLICATION
  * @param {string} publicationUUID @param {string} ownerId
@@ -32,6 +40,21 @@ Publication.findByUUID = async (publicationUUID,ownerId,connection=null) => {
     await AuditService.logSystem(LogCategory.OPERATIONAL,'ERROR','Publication lookup failed',source,'findByUUID',null);
     throw error;
   }
+};
+/** FIND OWN PUBLICATIONS PAGE
+ * @param {string} ownerId @param {number} page @param {number} limit
+ * @param {import('mysql2/promise').PoolConnection} connection @returns {Promise<PublicationRecord[]>}
+ */
+Publication.findByOwner=async(ownerId,page,limit,connection)=>{
+ try{if(!ownerIdSchema.safeParse(ownerId).success||!Number.isSafeInteger(page)||page<1||page>100000||!Number.isSafeInteger(limit)||limit<1||limit>12)throw new CustomModelError('Publication','Paginación inválida.');
+ const publicationQuery=`SELECT P.internalUUID AS publicationUUID, P.materialType AS publicationMaterialType,
+ CAST(P.quantityKg AS CHAR) AS publicationQuantityKg, P.locationText AS publicationLocationText,
+ P.availabilityText AS publicationAvailabilityText, P.status AS publicationStatus,
+ CONCAT('data:image/jpeg;base64,',REPLACE(TO_BASE64(P.photoJpeg),CHAR(10),'')) AS publicationPhotoDataUrl
+ FROM Publication P WHERE P.ownerId = ? AND P.deletedAt IS NULL ORDER BY P.createdAt DESC, P.id DESC LIMIT ? OFFSET ?`;
+ const publicationParams=[ownerId,String(limit),String((page-1)*limit)];const [publications]=await connection.execute(publicationQuery,publicationParams);
+ return /** @type {Array<import('mysql2').RowDataPacket & PublicationRecord>} */(publications);
+ }catch(error){await AuditService.logSystem(LogCategory.OPERATIONAL,'ERROR','Publication list failed',source,'findByOwner',null);throw error;}
 };
 // CREATE
 /** CREATE AVAILABLE PUBLICATION
@@ -63,16 +86,16 @@ Publication.create = async (data,connection) => {
 // UPDATE: preparatory model operation for US5; no HTTP edit endpoint in this delivery.
 /** UPDATE OWN AVAILABLE PUBLICATION
  * @param {string} publicationUUID @param {string} ownerId
- * @param {Partial<PublicationFields>} data
+ * @param {Partial<PublicationFields> & {photoJpeg?:Buffer}} data
  * @param {import('mysql2/promise').PoolConnection} connection
  * @returns {Promise<void>}
  */
 Publication.updateByUUID = async (publicationUUID,ownerId,data,connection) => {
   try {
-    const parsed = publicationFieldsSchema.partial().strict().safeParse(data);
+    const parsed = publicationFieldsSchema.partial().extend({photoJpeg:photoSchema.optional()}).strict().safeParse(data);
     if (!uuidSchema.safeParse(publicationUUID).success || !ownerIdSchema.safeParse(ownerId).success || !parsed.success || !Object.keys(parsed.data).length)
       throw new CustomModelError('Publication','Cambios inválidos.');
-    const allowedFields = /** @type {const} */ ({materialType:'materialType',quantityKg:'quantityKg',locationText:'locationText',availabilityText:'availabilityText'});
+    const allowedFields = /** @type {const} */ ({materialType:'materialType',quantityKg:'quantityKg',locationText:'locationText',availabilityText:'availabilityText',photoJpeg:'photoJpeg'});
     const entries = Object.entries(parsed.data);
     const assignments = entries.map(([field])=>`${allowedFields[/** @type {keyof typeof allowedFields} */ (field)]} = ?`);
     const publicationQuery = `UPDATE Publication SET ${assignments.join(', ')}, updatedAt = CURRENT_TIMESTAMP(3)
