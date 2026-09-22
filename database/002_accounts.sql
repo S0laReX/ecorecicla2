@@ -1,0 +1,38 @@
+-- Additive migration for MySQL >= 8.0.16. Existing users/publications remain intact.
+CREATE TABLE IF NOT EXISTS CompanyProfile (
+ id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ userId BIGINT UNSIGNED NOT NULL,
+ taxIdentifier VARCHAR(40) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ contactName VARCHAR(120) NOT NULL,
+ coverageArea VARCHAR(300) NOT NULL,
+ documentContent MEDIUMBLOB NOT NULL,
+ documentMime VARCHAR(40) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ createdAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+ UNIQUE KEY uq_company_user (userId), UNIQUE KEY uq_company_tax (taxIdentifier),
+ CONSTRAINT fk_company_user FOREIGN KEY (userId) REFERENCES User(id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+ CONSTRAINT ck_company_document CHECK (OCTET_LENGTH(documentContent) BETWEEN 4 AND 5242880),
+ CONSTRAINT ck_company_mime CHECK (documentMime IN ('application/pdf','image/jpeg'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS AuthSession (
+ id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ internalUUID CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ userId BIGINT UNSIGNED NOT NULL,
+ refreshHash CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ expiresAt DATETIME(3) NOT NULL,
+ revokedAt DATETIME(3) NULL,
+ createdAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+ UNIQUE KEY uq_session_uuid (internalUUID), KEY ix_session_user (userId, revokedAt),
+ CONSTRAINT fk_session_user FOREIGN KEY (userId) REFERENCES User(id) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS PasswordResetToken (
+ id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ userId BIGINT UNSIGNED NOT NULL,
+ tokenHash CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ expiresAt DATETIME(3) NOT NULL,
+ usedAt DATETIME(3) NULL,
+ createdAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+ UNIQUE KEY uq_reset_hash (tokenHash), KEY ix_reset_user (userId, usedAt),
+ CONSTRAINT fk_reset_user FOREIGN KEY (userId) REFERENCES User(id) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
