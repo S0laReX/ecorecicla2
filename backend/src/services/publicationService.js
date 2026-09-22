@@ -5,6 +5,7 @@ const Publication = require('../models/Publication');
 const CustomModelError = require('../utils/customModelError');
 const {AuditService} = require('./auditService');
 const {LogCategory} = require('../utils/logCategories');
+const {lockSessionUser}=require('./sessionPolicy');
 /** AUTHORIZE PUBLICATION CREATION
  * Pending companies may publish their own material (backlog US4).
  * @param {import('../models/User').UserContext|null} user @param {number} tokenVersion
@@ -36,7 +37,7 @@ async function normalizePhoto(file) {
   }
 }
 /** CREATE PUBLICATION IN AN AUTHORIZED TRANSACTION
- * @param {{userUUID:string,tokenVersion:number}} auth
+ * @param {import('./sessionPolicy').AuthContext} auth
  * @param {import('../models/Publication').PublicationFields} fields
  * @param {Express.Multer.File|undefined} file
  * @returns {Promise<import('../models/Publication').PublicationRecord>}
@@ -46,7 +47,7 @@ async function createPublicationForUser(auth,fields,file) {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
-    const user = await User.findContextForUpdate(auth.userUUID,connection);
+    const user = await lockSessionUser(auth,connection);
     authorizePublisher(user,auth.tokenVersion);
     const publication = await Publication.create({...fields,ownerId:user.userId,photoJpeg},connection);
     await connection.commit();

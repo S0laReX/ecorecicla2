@@ -14,7 +14,7 @@ const user={userId:'1',userUUID:randomUUID(),userRoleCode:'COMPANY',userAccountS
 const {privateKey,publicKey}=generateKeyPairSync('rsa',{modulusLength:2048});
 process.env.JWT_PUBLIC_KEY=publicKey.export({format:'pem',type:'spki'}).toString();
 process.env.JWT_ISSUER='test-auth';process.env.JWT_AUDIENCE='test-api';
-const sign=(options={})=>jwt.sign({sub:user.userUUID,tokenVersion:0},privateKey,{algorithm:'RS256',expiresIn:'30m',issuer:'test-auth',audience:'test-api',...options});
+const sign=(options={})=>jwt.sign({sub:user.userUUID,sid:'5bfe34f0-1c2a-4d18-b3be-81b250a02599',tokenVersion:0},privateKey,{algorithm:'RS256',expiresIn:'30m',issuer:'test-auth',audience:'test-api',...options});
 after(()=>pool.end());
 test('rejects client ownership, status, unknown material and invalid decimals',()=>{
  for(const patch of [{ownerId:'2'},{status:'confirmada'},{materialType:'battery'},{quantityKg:'0'},{quantityKg:'-1'},{quantityKg:'1e3'},{quantityKg:'1.2345'},{quantityKg:'10000000'}])
@@ -54,6 +54,7 @@ test('HTTP creation commits, ignores no unknown fields, rolls back safely on DB 
  let saved;
  pool.getConnection=async()=>({beginTransaction:async()=>{},commit:async()=>{committed++;},rollback:async()=>{rolledBack++;},release:()=>{released++;},execute:async(q,p)=>{
   if(q.includes('FROM User'))return [[user]];
+  if(q.includes('FROM AuthSession'))return [[{sessionUserId:'1',sessionExpiresAt:new Date(Date.now()+60000),sessionRevokedAt:null}]];
   if(q.startsWith('INSERT')){if(fail)throw new Error('SECRET SQL PASSWORD');saved=p;return [{affectedRows:1}];}
   return [[{publicationUUID:saved[0],publicationMaterialType:saved[2],publicationQuantityKg:saved[3],publicationLocationText:saved[4],publicationAvailabilityText:saved[5],publicationStatus:saved[7],publicationPhotoDataUrl:'data:image/jpeg;base64,'+saved[6].toString('base64')}]];
  }});
