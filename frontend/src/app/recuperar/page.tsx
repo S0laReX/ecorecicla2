@@ -1,2 +1,3 @@
 import {RecoveryForm} from '../../features/auth/components/organisms/RecoveryForm';
-export default function Page(){return <section className="auth-page"><h1>Recupera tu cuenta</h1><RecoveryForm/></section>;}
+import {AuthLayout} from '../../features/auth/components/templates/AuthLayout';
+export default function Page(){return <AuthLayout><section className="recovery-content"><h1>Recupera tu cuenta</h1><RecoveryForm/></section></AuthLayout>;}

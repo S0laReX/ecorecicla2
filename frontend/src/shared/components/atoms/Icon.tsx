@@ -1,1 +1,2 @@
-export function Icon(){return <span aria-hidden="true">♻</span>;}
+import {DesignIcon} from './DesignIcon';
+export function Icon(){return <DesignIcon name="leaf"/>;}

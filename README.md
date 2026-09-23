@@ -2,6 +2,8 @@
 
 Aplicación web responsive para personas que reciclan y empresas recolectoras. Incluye las US1–US5: arquitectura MVC y por features, registro, sesión, recuperación de contraseña, publicación de materiales y gestión de publicaciones propias. Frontend Next.js/React/Redux Toolkit/TypeScript; API Express/Node.js con JSDoc estricto; MySQL.
 
+La interfaz sigue el Figma de EcoRecicla proporcionado el 23 de septiembre de 2026. Consulta [UI_FIGMA.md](UI_FIGMA.md) para los colores, componentes, adaptaciones del Sprint 1 y referencias de pantallas para los siguientes sprints. Las fuentes e imágenes se sirven localmente; no requieren conexión a Figma para ejecutar el proyecto.
+
 ## Probar en este equipo
 
 La base `ecorecicla` está configurada y migrada. Las claves RSA locales y el administrador inicial ya fueron creados. No ejecutes de nuevo el DDL base sobre esas tablas.

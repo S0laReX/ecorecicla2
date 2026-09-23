@@ -1,1 +1,1 @@
-export function Icon() { return <span aria-hidden="true">♻</span>; }
+export {Icon} from '../../../../shared/components/atoms/Icon';

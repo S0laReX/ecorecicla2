@@ -17,5 +17,6 @@ Sustituye el hash por el indicado en cada aviso. Repite el push con el siguiente
 3. Login, sesiones, recuperación y navegación por rol.
 4. Alta de publicaciones integrada con la sesión.
 5. Mis publicaciones, detalle, edición, eliminación y pruebas finales.
+6. Actualización visual según Figma: fuentes e imágenes locales, acceso/registro, publicaciones y navegación responsive; referencias de futuros sprints en UI_FIGMA.md. Se entrega como un commit independiente de las US anteriores.
 
 Se excluyen `.env`, `.keys`, `.local`, dependencias y compilados. La base de datos y sus datos no se suben; se suben los scripts de esquema.

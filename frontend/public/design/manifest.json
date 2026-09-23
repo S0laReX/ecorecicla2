@@ -1,0 +1,176 @@
+[
+  {
+    "file": "auth-garden.png",
+    "frame": "15:5543",
+    "constant": "imgLeftTopImageArea",
+    "bytes": 50011
+  },
+  {
+    "file": "leaf-white.svg",
+    "frame": "15:5543",
+    "constant": "imgContainer",
+    "bytes": 1067
+  },
+  {
+    "file": "person.svg",
+    "frame": "15:5543",
+    "constant": "imgContainer1",
+    "bytes": 816
+  },
+  {
+    "file": "company.svg",
+    "frame": "15:5543",
+    "constant": "imgContainer2",
+    "bytes": 470
+  },
+  {
+    "file": "identity.svg",
+    "frame": "15:5543",
+    "constant": "imgIcon",
+    "bytes": 1386
+  },
+  {
+    "file": "email.svg",
+    "frame": "15:5543",
+    "constant": "imgIcon1",
+    "bytes": 539
+  },
+  {
+    "file": "lock.svg",
+    "frame": "15:5543",
+    "constant": "imgIcon2",
+    "bytes": 1082
+  },
+  {
+    "file": "arrow-right.svg",
+    "frame": "15:5543",
+    "constant": "imgContainer3",
+    "bytes": 299
+  },
+  {
+    "file": "hero.png",
+    "frame": "15:5278",
+    "constant": "imgHeroSection",
+    "bytes": 71463
+  },
+  {
+    "file": "step-publish.svg",
+    "frame": "15:5278",
+    "constant": "imgContainer",
+    "bytes": 935
+  },
+  {
+    "file": "step-collect.svg",
+    "frame": "15:5278",
+    "constant": "imgContainer1",
+    "bytes": 625
+  },
+  {
+    "file": "step-reward.svg",
+    "frame": "15:5278",
+    "constant": "imgContainer2",
+    "bytes": 1064
+  },
+  {
+    "file": "leaf.svg",
+    "frame": "15:5278",
+    "constant": "imgContainer4",
+    "bytes": 1064
+  },
+  {
+    "file": "back.svg",
+    "frame": "15:4655",
+    "constant": "imgContainer",
+    "bytes": 298
+  },
+  {
+    "file": "plastic.svg",
+    "frame": "15:4655",
+    "constant": "imgMargin",
+    "bytes": 1556
+  },
+  {
+    "file": "glass.svg",
+    "frame": "15:4655",
+    "constant": "imgMargin2",
+    "bytes": 391
+  },
+  {
+    "file": "paper.svg",
+    "frame": "15:4655",
+    "constant": "imgMargin3",
+    "bytes": 700
+  },
+  {
+    "file": "metal.svg",
+    "frame": "15:4655",
+    "constant": "imgMargin4",
+    "bytes": 1419
+  },
+  {
+    "file": "location.svg",
+    "frame": "15:4655",
+    "constant": "imgIcon",
+    "bytes": 1125
+  },
+  {
+    "file": "clock.svg",
+    "frame": "15:4655",
+    "constant": "imgIcon1",
+    "bytes": 1213
+  },
+  {
+    "file": "upload.svg",
+    "frame": "15:4655",
+    "constant": "imgContainer1",
+    "bytes": 462
+  },
+  {
+    "file": "document.svg",
+    "frame": "15:5600",
+    "constant": "imgContainer1",
+    "bytes": 670
+  },
+  {
+    "file": "hourglass.svg",
+    "frame": "15:5692",
+    "constant": "imgIcon",
+    "bytes": 1106
+  },
+  {
+    "file": "info.svg",
+    "frame": "15:5692",
+    "constant": "imgContainer",
+    "bytes": 1918
+  },
+  {
+    "file": "leaf-dashboard.svg",
+    "frame": "15:5006",
+    "constant": "imgContainer5",
+    "bytes": 1064
+  },
+  {
+    "file": "home.svg",
+    "frame": "15:5006",
+    "constant": "imgContainer",
+    "bytes": 270
+  },
+  {
+    "file": "plus.svg",
+    "frame": "15:5006",
+    "constant": "imgContainer1",
+    "bytes": 1192
+  },
+  {
+    "file": "history.svg",
+    "frame": "15:5006",
+    "constant": "imgContainer2",
+    "bytes": 1063
+  },
+  {
+    "file": "profile.svg",
+    "frame": "15:5006",
+    "constant": "imgContainer4",
+    "bytes": 1459
+  }
+]
