@@ -1,6 +1,6 @@
+import {decodeApiResponse,fetchApi} from '../../../shared/services/apiResponse';
+import {userSchema} from '../types/auth';
 export async function registerAccount(body:FormData):Promise<string>{
- const response=await fetch('/api/auth/register',{method:'POST',body});
- const json:unknown=await response.json();
- if(!json||typeof json!=='object'||!('message'in json)||typeof json.message!=='string')throw new Error('Respuesta no válida del servidor.');
- if(!response.ok)throw new Error(json.message);return json.message;
+ const user=userSchema.parse(await decodeApiResponse(await fetchApi('/api/auth/register',{method:'POST',body})));
+ return user.roleCode==='COMPANY'?'Empresa registrada. La verificación está pendiente.':'Cuenta creada. Ya puedes iniciar sesión.';
 }

@@ -6,7 +6,15 @@ Aplicación web responsive para personas que reciclan y empresas recolectoras. I
 
 La base `ecorecicla` está configurada y migrada. Las claves RSA locales y el administrador inicial ya fueron creados. No ejecutes de nuevo el DDL base sobre esas tablas.
 
-Abre dos terminales en la carpeta del proyecto:
+Desde la carpeta del proyecto puedes iniciar ambos servidores con:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\start-local.ps1
+```
+
+El iniciador los mantiene en segundo plano y guarda sus logs en `.local/`. Si un puerto ya está ocupado, no detiene ni reemplaza su proceso. Después de modificar código del backend, reinicia la API o utiliza `npm run dev` para activar la recarga.
+
+Como alternativa, abre dos terminales en la carpeta del proyecto:
 
 ```powershell
 # Terminal 1
@@ -96,6 +104,8 @@ Colecciones: `data` es un array y `meta` contiene `total`, `page`, `limit`.
 En backend: `npm run typecheck`, `npm test` y `npm run test:integration`. La suite MySQL crea una base `ecorecicla_test_<aleatorio>` y elimina únicamente esa base al finalizar; requiere permisos de creación de bases. En frontend: `npm run typecheck` y `npm run build`. Los resultados están en `VALIDATION.md`.
 
 Se entrega un repositorio local con un commit por parte; la guía para subirlos está en `UPLOAD_PARTS.md`. No se configuró un remoto ni se hizo push. El ZIP solo contiene código y documentación; las claves, credenciales, datos MySQL y archivos de compilación quedan fuera.
+
+Si el login indica que el servicio no está disponible, comprueba que la API esté activa en el puerto 4000 y Next.js en el 3000. No es necesariamente un error de contraseña. Ejecuta `start-local.ps1` y revisa `.local/backend.error.log` si la API no inicia. Las respuestas de error del proxy y los fallos de red se traducen a mensajes seguros. Las pruebas del transporte se ejecutan en frontend con `npm test`.
 
 ## Fuentes vigentes
 

@@ -16,4 +16,6 @@ La suite de MySQL comprueba registro, duplicados, documento privado, sesión, se
 
 El enlace de recuperación se prueba con el canal local de archivos privados. No se enviaron correos reales ni se verificó un servidor SMTP externo. No se prueba concurrencia a escala de producción. Los endpoints y pantallas de recolecciones, puntos y administración de empresas quedan fuera de las épicas de este sprint.
 
+Corrección posterior del login: se detectaron ambos servidores detenidos y se añadió un iniciador Windows persistente. Se verificaron login de administrador, acceso a su panel y logout a través del proxy de Next.js (HTTP 200 en los tres casos). Pasaron cuatro pruebas nuevas de transporte: HTML de proxy 5xx, preservación del contrato JSON, respuesta inválida y error de red/cancelación. El tipado del frontend también pasó.
+
 En navegador se usaron datos e imagen sintéticos. Se verificó el diálogo de eliminación y su cancelación; la eliminación efectiva y los bloqueos por estado se verificaron en la suite HTTP/MySQL. La recuperación se verificó por API y almacenamiento, sin cambiar contraseñas del usuario del equipo.
