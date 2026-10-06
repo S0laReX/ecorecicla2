@@ -1,0 +1,10 @@
+const {Router,json}=require('express');
+const {authenticate}=require('../middlewares/authenticate');
+const controller=require('../controllers/companyAdministrationController');
+const router=Router();
+router.use(json({limit:'16kb'}));
+router.use(authenticate);
+router.get('/companies/pending',controller.listPendingCompanyApplications);
+router.get('/companies/:companyUUID/document',controller.retrievePendingCompanyDocument);
+router.patch('/companies/:companyUUID/decision',controller.decideCompanyVerification);
+module.exports=router;

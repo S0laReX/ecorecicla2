@@ -22,13 +22,24 @@ async function refreshSession(previousAccess:string|null){
  refreshing=(async()=>{if(navigator.locks)await navigator.locks.request('ecorecicla-refresh',perform);else await perform();})().finally(()=>{refreshing=null;});
  return refreshing;
 }
-export async function authenticatedRequest(path:string,init:RequestInit={},envelope=false):Promise<unknown>{
+async function authenticatedResponse(path:string,init:RequestInit={}):Promise<Response>{
  const token=localStorage.getItem(STORAGE_KEYS.access);
  if(!token)throw new ApiRequestError(401,'AUTH_REQUIRED','Inicia sesión para continuar.');
  const send=()=>fetchApi(`/api${path}`,{...init,headers:{...Object.fromEntries(new Headers(init.headers).entries()),Authorization:`Bearer ${localStorage.getItem(STORAGE_KEYS.access)}`},cache:'no-store'});
  let response=await send();
  if(response.status===401){try{await refreshSession(token);response=await send();}catch(error){if(error instanceof ApiRequestError&&error.statusCode>=400&&error.statusCode<500)clearSession();throw error;}}
+ return response;
+}
+export async function authenticatedRequest(path:string,init:RequestInit={},envelope=false):Promise<unknown>{
+ const response=await authenticatedResponse(path,init);
  try{return await decode(response,envelope);}catch(error){if(error instanceof ApiRequestError&&(error.statusCode===401||['ACCOUNT_SUSPENDED','COMPANY_REJECTED'].includes(error.errorCode)))clearSession();throw error;}
+}
+export async function authenticatedBlobRequest(path:string):Promise<{blob:Blob;contentType:string}>{
+ const response=await authenticatedResponse(path);
+ if(!response.ok)await decode(response);
+ const contentType=response.headers.get('content-type')?.split(';')[0]?.trim()||'';
+ if(!['application/pdf','image/jpeg'].includes(contentType))throw new ApiRequestError(200,'INVALID_DOCUMENT','El documento recibido no tiene un formato permitido.');
+ return {blob:await response.blob(),contentType};
 }
 export async function restoreSession():Promise<User|null>{if(!localStorage.getItem(STORAGE_KEYS.access))return null;return userSchema.parse(await authenticatedRequest('/auth/me'));}
 export async function logout():Promise<void>{await authenticatedRequest('/auth/logout',{method:'POST'});clearSession();}

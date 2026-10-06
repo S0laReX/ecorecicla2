@@ -53,3 +53,10 @@ exports.updatePassword=(userId,data,connection)=>modelGuard('User','updatePasswo
  const userQuery='UPDATE User SET passwordHash = ?, tokenVersion = tokenVersion + 1 WHERE id = ? AND deletedAt IS NULL';
  const userParams=[allowed.data.passwordHash,userId];await connection.execute(userQuery,userParams);
 });
+/** UPDATE COMPANY VERIFICATION STATUS @param {string} userId @param {'APPROVED'|'REJECTED'} verificationStatus @param {Connection} connection @returns {Promise<void>} */
+exports.updateCompanyVerificationStatus=(userId,verificationStatus,connection)=>modelGuard('User','updateCompanyVerificationStatus',async()=>{
+ if(!ownerIdSchema.safeParse(userId).success||!['APPROVED','REJECTED'].includes(verificationStatus))throw new CustomModelError('User','Decisión de verificación inválida.');
+ const userQuery='UPDATE User SET verificationStatus = ?, updatedAt = UTC_TIMESTAMP(3) WHERE id = ? AND roleCode = ? AND verificationStatus = ? AND deletedAt IS NULL';
+ const userParams=[verificationStatus,userId,'COMPANY','PENDING'];const [updated]=await connection.execute(userQuery,userParams);
+ if(/** @type {import('mysql2').ResultSetHeader} */(updated).affectedRows!==1)throw new CustomModelError('User','La solicitud ya fue atendida. Actualiza el listado.','COMPANY_DECISION_CONFLICT',409);
+});
