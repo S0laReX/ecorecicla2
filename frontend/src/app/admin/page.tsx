@@ -1,2 +1,2 @@
-import {DashboardPage} from '../../features/dashboard/pages/DashboardPage';
-export default function Page(){return <DashboardPage role="ADMIN"/>;}
+import {AdminCompaniesPage} from '../../features/admin/pages/AdminCompaniesPage';
+export default function Page(){return <AdminCompaniesPage/>;}

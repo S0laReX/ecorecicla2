@@ -14,6 +14,7 @@ const check=(label)=>{passed++;console.log(`PASS ${label}`);};
   await admin.changeUser({database:databaseName});
   await admin.query(fs.readFileSync(path.resolve(__dirname,'../../database/001_sprint1.sql'),'utf8'));
   await admin.query(fs.readFileSync(path.resolve(__dirname,'../../database/002_accounts.sql'),'utf8'));
+  await admin.query(fs.readFileSync(path.resolve(__dirname,'../../database/003_company_verification.sql'),'utf8'));
   const register=(email)=>request(app).post('/api/auth/register').field({displayName:'Integration User',email,password,roleCode:'USER'});
   const created=await register('one@example.test');assert.equal(created.status,201);check('register user in real MySQL');
   assert.equal((await register('one@example.test')).status,409);check('duplicate email rejected');

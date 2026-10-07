@@ -11,6 +11,7 @@ const mysql=require('mysql2/promise');
   if(existing.length!==0 && existing.length!==3)throw new Error('Partial base schema; repair manually before migrating.');
   if(existing.length===0)await connection.query(fs.readFileSync(path.resolve(__dirname,'../../database/001_sprint1.sql'),'utf8'));
   await connection.query(fs.readFileSync(path.resolve(__dirname,'../../database/002_accounts.sql'),'utf8'));
+  await connection.query(fs.readFileSync(path.resolve(__dirname,'../../database/003_company_verification.sql'),'utf8'));
   console.log('Schema ready. Existing accounts and publications preserved.');
  } finally {await connection.end();}
 })().catch(error=>{console.error('Migration failed:',error.code || error.message);process.exitCode=1;});
