@@ -18,6 +18,7 @@ export function PublicationCard({publication:p,isOwner,onView,onEdit,onDelete}:P
  const titleId=useId();const [isDeleting,setDeleting]=useState(false);const [error,setError]=useState<string|null>(null);
  const [confirming,setConfirming]=useState(false);
  const canManage=isOwner && p.publicationStatus==='disponible';
+ const statusLabel=p.publicationStatus==='aceptada'?'Agendada':p.publicationStatus==='confirmada'?'Confirmada':'Disponible';
  async function confirmDelete() {
   if(!canManage || !onDelete || isDeleting)return;
   setDeleting(true);setError(null);
@@ -26,8 +27,8 @@ export function PublicationCard({publication:p,isOwner,onView,onEdit,onDelete}:P
  return <article className="publication-card" aria-labelledby={titleId} aria-busy={isDeleting}>
   {/* Normalized JPEG data URL; no third-party image request or SVG. */}
   <img src={p.publicationPhotoDataUrl} alt={`Material reciclable: ${MATERIAL_LABELS[p.publicationMaterialType]}`} width={640} height={400} loading="lazy"/>
-  <div className="card-body"><h2 id={titleId}><Icon/> {MATERIAL_LABELS[p.publicationMaterialType]}</h2>
-   <p className={`badge badge-${p.publicationStatus}`}>{p.publicationStatus}</p><dl>
+   <div className="card-body"><h2 id={titleId}><Icon/> {MATERIAL_LABELS[p.publicationMaterialType]}</h2>
+   <p className={`badge badge-${p.publicationStatus}`}>{statusLabel}</p><dl>
     <dt>Cantidad</dt><dd>{p.publicationQuantityKg} kg</dd>
     <dt>Ubicación</dt><dd>{p.publicationLocationText}</dd>
     <dt>Horario disponible</dt><dd>{p.publicationAvailabilityText}</dd>
@@ -35,7 +36,7 @@ export function PublicationCard({publication:p,isOwner,onView,onEdit,onDelete}:P
     {onView&&<Button onClick={()=>onView(p.publicationUUID)}>Ver detalle</Button>}
     {isOwner&&onEdit&&<Button className="button-secondary" disabled={!canManage||isDeleting} onClick={()=>{if(canManage)onEdit(p.publicationUUID);}}>Editar</Button>}
     {isOwner&&onDelete&&<Button className="button-danger" disabled={!canManage||isDeleting} onClick={()=>setConfirming(true)}>{isDeleting?'Eliminando…':'Eliminar'}</Button>}
-   </div>{isOwner&&!canManage&&<Alert>Solo puedes editar o eliminar publicaciones disponibles.</Alert>}
+   </div>{isOwner&&p.publicationStatus==='aceptada'&&<Alert>Una empresa recolectora agendó este material. Ya no está disponible para editarse o eliminarse.</Alert>}{isOwner&&p.publicationStatus==='confirmada'&&<Alert>Esta recolección ya fue confirmada.</Alert>}{isOwner&&!canManage&&p.publicationStatus==='disponible'&&<Alert>Solo puedes editar o eliminar publicaciones disponibles.</Alert>}
    {error&&<Alert isError>{error}</Alert>}
    <Modal open={confirming} title="¿Eliminar esta publicación?" onClose={()=>{if(!isDeleting)setConfirming(false);}}><p>El material dejará de aparecer en tus publicaciones.</p><div className="actions"><Button disabled={isDeleting} onClick={()=>void confirmDelete()}>{isDeleting?'Eliminando…':'Sí, eliminar'}</Button><Button disabled={isDeleting} onClick={()=>setConfirming(false)}>Cancelar</Button></div></Modal>
   </div>

@@ -70,6 +70,37 @@ Publication.findAvailableByUUID=async(publicationUUID,viewerId,connection)=>{
   return /** @type {Array<import('mysql2').RowDataPacket & AvailablePublication>} */(rows)[0]||null;
  }catch(error){await AuditService.logSystem(LogCategory.OPERATIONAL,'ERROR','Available publication detail failed',source,'findAvailableByUUID',null);throw error;}
 };
+/** FIND A PUBLICATION ROW FOR AN EXCLUSIVE RESERVATION
+ * @param {string} publicationUUID @param {import('mysql2/promise').PoolConnection} connection
+ * @returns {Promise<{publicationId:string,publicationUUID:string,publicationOwnerId:string,publicationStatus:string,publicationAvailabilityText:string}|null>}
+ */
+Publication.findReservableByUUID=async(publicationUUID,connection)=>{
+ try{
+  if(!uuidSchema.safeParse(publicationUUID).success)throw new CustomModelError('Publication','Identificador inválido.');
+  const publicationQuery=`SELECT CAST(P.id AS CHAR) AS publicationId,P.internalUUID AS publicationUUID,
+   CAST(P.ownerId AS CHAR) AS publicationOwnerId,P.status AS publicationStatus,
+   P.availabilityText AS publicationAvailabilityText
+   FROM Publication P JOIN User U ON U.id=P.ownerId
+   WHERE P.internalUUID = ? AND P.deletedAt IS NULL AND U.deletedAt IS NULL LIMIT 1 FOR UPDATE`;
+  const publicationParams=[publicationUUID];const [publications]=await connection.execute(publicationQuery,publicationParams);
+  return /** @type {Array<import('mysql2').RowDataPacket & {publicationId:string,publicationUUID:string,publicationOwnerId:string,publicationStatus:string,publicationAvailabilityText:string}>} */(publications)[0]||null;
+ }catch(error){await AuditService.logSystem(LogCategory.OPERATIONAL,'ERROR','Reservable publication lookup failed',source,'findReservableByUUID',null);throw error;}
+};
+/** CHANGE PUBLICATION AVAILABILITY STATE WITH AN EXPECTED CURRENT STATE
+ * @param {string} publicationUUID @param {'disponible'|'aceptada'} expectedStatus
+ * @param {'disponible'|'aceptada'} nextStatus @param {import('mysql2/promise').PoolConnection} connection
+ * @returns {Promise<void>}
+ */
+Publication.changeReservationStatus=async(publicationUUID,expectedStatus,nextStatus,connection)=>{
+ try{
+  if(!uuidSchema.safeParse(publicationUUID).success||!['disponible','aceptada'].includes(expectedStatus)||!['disponible','aceptada'].includes(nextStatus)||expectedStatus===nextStatus)
+   throw new CustomModelError('Publication','Cambio de disponibilidad inválido.');
+  const publicationQuery='UPDATE Publication SET status = ?, updatedAt = UTC_TIMESTAMP(3) WHERE internalUUID = ? AND status = ? AND deletedAt IS NULL';
+  const publicationParams=[nextStatus,publicationUUID,expectedStatus];const [updated]=await connection.execute(publicationQuery,publicationParams);
+  if(/** @type {import('mysql2').ResultSetHeader} */(updated).affectedRows!==1)
+   throw new CustomModelError('Publication','La publicación ya no está disponible. Actualiza el listado.','RESERVATION_CONFLICT',409);
+ }catch(error){await AuditService.logSystem(LogCategory.OPERATIONAL,'ERROR','Publication reservation state update failed',source,'changeReservationStatus',null);throw error;}
+};
 /** FIND OWN PUBLICATION
  * @param {string} publicationUUID @param {string} ownerId
  * @param {import('mysql2/promise').PoolConnection|null} [connection]

@@ -73,3 +73,7 @@ Otros frames presentes: [Catálogo · 15:4903](https://www.figma.com/design/kFCZ
 El frame `15:4390` se volvió a consultar para la US 7. `/recolecciones` y su detalle usan datos reales, filtro por material, fotos, nombre del publicador y navegación de empresa aprobada. Se omiten mapa simulado, distancias y acciones de historias posteriores de acuerdo con el backlog. Los iconos originales adicionales están en `public/design/collection-*.svg`. Ver `US7.md` para endpoints y validación.
 
 Para cada historia futura: seleccionar su frame, adaptar a la feature correspondiente, conectar datos reales, implementar vacío/carga/error/éxito, verificar permisos en backend y comparar móvil/escritorio con Figma. Los cambios visuales no deben modificar el contrato JSON ni la jerarquía de almacenamiento de sesión.
+
+### US 8 implementada
+
+El frame `15:4262` guía la agenda de recolecciones: estados visibles, detalle de material y acciones responsivas. `/agenda` comparte estructura entre escritorio y móvil y solo está disponible para empresas aprobadas. La aceptación reserva de forma exclusiva, muestra fecha y hora, y el publicador ve el estado actualizado en Mis Publicaciones. La cancelación solo se ofrece para reservas aceptadas. Para validar el horario publicado, se requiere un texto estructurado con día(s) de semana y un rango `HH:mm` interpretable en `America/La_Paz`; ver `US8.md`.
