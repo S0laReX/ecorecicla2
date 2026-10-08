@@ -1,3 +1,4 @@
+const {releaseExpiredReservations}=require('./collectionExpiryService');
 const Publication=require('../models/Publication');
 const {transaction}=require('./transactionService');
 const {lockSessionUser}=require('./sessionPolicy');
@@ -16,18 +17,18 @@ async function requireCollector(auth,connection){
  * @param {import('./sessionPolicy').AuthContext} auth
  * @param {import('zod').infer<typeof import('../schemas/collectionSchema').collectionQuerySchema>} query
  */
-exports.listAvailablePublications=(auth,query)=>transaction(async connection=>{
+exports.listAvailablePublications=async(auth,query)=>{await releaseExpiredReservations();return transaction(async connection=>{
  const user=await requireCollector(auth,connection);
  const total=await Publication.readAvailableCount(user.userId,query,connection);
  const publications=await Publication.findAvailable(user.userId,query,connection);
  return {publications,meta:{total,page:query.page,limit:query.limit}};
-});
+});};
 /** RETRIEVE AN AVAILABLE THIRD-PARTY PUBLICATION
  * @param {import('./sessionPolicy').AuthContext} auth @param {string} publicationUUID
  */
-exports.retrieveAvailablePublication=(auth,publicationUUID)=>transaction(async connection=>{
+exports.retrieveAvailablePublication=async(auth,publicationUUID)=>{await releaseExpiredReservations();return transaction(async connection=>{
  const user=await requireCollector(auth,connection);
  const publication=await Publication.findAvailableByUUID(publicationUUID,user.userId,connection);
  if(!publication)throw new CustomModelError('Publication','Esta publicación ya no está disponible. Actualiza el listado.','PUBLICATION_NOT_FOUND',404);
  return publication;
-});
+});};

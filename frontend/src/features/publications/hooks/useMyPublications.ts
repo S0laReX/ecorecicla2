@@ -4,7 +4,7 @@ import type {RootState,AppDispatch} from '../../../store/store';import {fetchMyP
 export function useMyPublications(){
  const dispatch=useDispatch<AppDispatch>();const {user}=useSelector((state:RootState)=>state.auth);const state=useSelector((root:RootState)=>root.publications);const [page,setPage]=useState(1);
  const refresh=useCallback(()=>{if(user)return dispatch(fetchMyPublications(page));},[dispatch,page,user]);
- useEffect(()=>{const promise=refresh();const focus=()=>{refresh();};window.addEventListener('focus',focus);return()=>{promise?.abort();window.removeEventListener('focus',focus);};},[refresh]);
+ useEffect(()=>{const promise=refresh();const focus=()=>{refresh();};window.addEventListener('focus',focus);const timer=setInterval(()=>{if(document.visibilityState==='visible'&&!document.querySelector('[role="dialog"]'))refresh();},15000);return()=>{clearInterval(timer);promise?.abort();window.removeEventListener('focus',focus);};},[refresh]);
  const remove=async(uuid:string)=>{await deletePublication(uuid);dispatch(removePublication(uuid));if(state.items.length===1&&page>1)setPage(page-1);else await refresh();};
  return {...state,page,setPage,refresh,remove};
 }

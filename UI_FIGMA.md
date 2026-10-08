@@ -68,6 +68,10 @@ Otros frames presentes: [Catálogo · 15:4903](https://www.figma.com/design/kFCZ
 
 ## Continuidad
 
+### US 9 implementada
+
+Se revisó nuevamente `15:4262` para incorporar el botón verde de confirmar recolección como acción principal de ancho completo en la agenda. Se conserva la tarjeta funcional de US 8 con sus fotos reales; se añadieron fecha límite, confirmación modal y resultado con puntos reales del servidor. Las vencidas salen de la agenda según el backlog, en lugar de conservar las acciones de contacto simuladas en el diseño. Ver `US9.md`.
+
 ### US 7 implementada
 
 El frame `15:4390` se volvió a consultar para la US 7. `/recolecciones` y su detalle usan datos reales, filtro por material, fotos, nombre del publicador y navegación de empresa aprobada. Se omiten mapa simulado, distancias y acciones de historias posteriores de acuerdo con el backlog. Los iconos originales adicionales están en `public/design/collection-*.svg`. Ver `US7.md` para endpoints y validación.

@@ -8,6 +8,7 @@ server.on('error',error=>{console.error('No se pudo iniciar la API:',/** @type {
 server.requestTimeout = 30000;
 server.headersTimeout = 15000;
 const {pool}=require('./config/database');
+const stopExpiryWorker=require('./services/collectionExpiryService').startExpiryWorker();
 /** CLOSE HTTP AND DATABASE RESOURCES @returns {void} */
-function shutdown(){server.close(()=>{void pool.end();});}
+function shutdown(){stopExpiryWorker();server.close(()=>{void pool.end();});}
 process.once('SIGINT',shutdown);process.once('SIGTERM',shutdown);

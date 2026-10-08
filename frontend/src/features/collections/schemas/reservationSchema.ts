@@ -2,7 +2,7 @@ import {z} from 'zod';
 import {MATERIAL_TYPES} from '../../publications/constants/publicationConstants';
 export const agendaReservationSchema=z.object({
  reservationUUID:z.string().uuid(),reservationPublicationUUID:z.string().uuid(),
- reservationScheduledAt:z.string().datetime(),reservationStatus:z.literal('ACEPTADA'),
+ reservationScheduledAt:z.string().datetime(),reservationExpiresAt:z.string().datetime(),reservationStatus:z.literal('ACEPTADA'),
  publicationMaterialType:z.enum(MATERIAL_TYPES),publicationQuantityKg:z.string(),
  publicationLocationText:z.string(),publicationAvailabilityText:z.string(),
  publicationPhotoDataUrl:z.string().max(1400000).regex(/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/),
@@ -14,3 +14,4 @@ export const agendaPageSchema=z.object({
 }).strict();
 export const acceptedReservationSchema=z.object({reservationUUID:z.string().uuid(),publicationUUID:z.string().uuid(),scheduledAt:z.string().datetime()}).strict();
 export const cancelledReservationSchema=z.object({reservationUUID:z.string().uuid(),publicationUUID:z.string().uuid(),publicationStatus:z.literal('disponible')}).strict();
+export const confirmedReservationSchema=z.object({reservationUUID:z.string().uuid(),publicationUUID:z.string().uuid(),publicationStatus:z.literal('confirmada'),confirmedAt:z.string().datetime(),publisherPoints:z.number().int().nonnegative(),collectorPoints:z.number().int().nonnegative()}).strict();

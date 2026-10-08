@@ -1,10 +1,11 @@
 const Publication=require('../models/Publication');
 const CollectionReservation=require('../models/CollectionReservation');
-const {transaction}=require('./transactionService');
+const {retryTransaction:transaction}=require('./transactionService');
 const {lockSessionUser}=require('./sessionPolicy');
 const CustomModelError=require('../utils/customModelError');
 const {acceptReservationSchema,reservationUUIDSchema}=require('../schemas/reservationSchema');
-const {isWithinAvailabilityWindow}=require('../utils/availabilityWindow');
+const {isWithinAvailabilityWindow,reservationExpiry}=require('../utils/availabilityWindow');
+const {releaseExpiredReservations}=require('./collectionExpiryService');
 /** REQUIRE AN ACTIVE, APPROVED COLLECTOR IN THE CURRENT TRANSACTION
  * @param {import('./sessionPolicy').AuthContext} auth @param {import('mysql2/promise').PoolConnection} connection
  * @returns {Promise<import('../models/User').UserContext>}
@@ -25,6 +26,7 @@ exports.acceptPublication=async(auth,publicationUUID,input)=>{
  if(!reservationUUIDSchema.safeParse(publicationUUID).success)throw new CustomModelError('Publication','Identificador inválido.','VALIDATION_ERROR',422);
  const parsed=acceptReservationSchema.safeParse(input);
  if(!parsed.success)throw new CustomModelError('CollectionReservation','Selecciona una fecha y hora válidas.','VALIDATION_ERROR',422);
+ await releaseExpiredReservations();
  const scheduledAt=new Date(parsed.data.scheduledAt);
  if(!Number.isFinite(scheduledAt.getTime())||scheduledAt.getTime()<=Date.now())throw new CustomModelError('CollectionReservation','La fecha y hora de recolección deben ser futuras.','SCHEDULE_IN_PAST',422);
  try{
@@ -36,8 +38,10 @@ exports.acceptPublication=async(auth,publicationUUID,input)=>{
    const scheduleFitsWindow=isWithinAvailabilityWindow(publication.publicationAvailabilityText,scheduledAt);
    if(scheduleFitsWindow===null)throw new CustomModelError('Publication','El horario publicado debe incluir días de la semana y un rango HH:mm-HH:mm para poder validarlo.','AVAILABILITY_WINDOW_UNVERIFIABLE',422);
    if(!scheduleFitsWindow)throw new CustomModelError('CollectionReservation','El horario elegido está fuera de la disponibilidad publicada.','SCHEDULE_OUTSIDE_WINDOW',422);
+   const expiresAt=reservationExpiry(publication.publicationAvailabilityText,scheduledAt);
+   if(!expiresAt)throw new CustomModelError('CollectionReservation','Horario inválido.');
    await Publication.changeReservationStatus(publicationUUID,'disponible','aceptada',connection);
-   const reservationUUID=await CollectionReservation.create({publicationId:publication.publicationId,companyUserId:collector.userId,scheduledAt},connection);
+   const reservationUUID=await CollectionReservation.create({publicationId:publication.publicationId,companyUserId:collector.userId,scheduledAt,expiresAt},connection);
    return {reservationUUID,publicationUUID,scheduledAt:scheduledAt.toISOString()};
   });
  }catch(error){
@@ -48,12 +52,12 @@ exports.acceptPublication=async(auth,publicationUUID,input)=>{
 /** LIST A COMPANY'S ACTIVE AGENDA
  * @param {import('./sessionPolicy').AuthContext} auth @param {number} page @param {number} limit
  */
-exports.listAgenda=(auth,page,limit)=>transaction(async connection=>{
+exports.listAgenda=async(auth,page,limit)=>{await releaseExpiredReservations();return transaction(async connection=>{
  const collector=await requireCollector(auth,connection);
  const total=await CollectionReservation.readAgendaCountByCompany(collector.userId,connection);
  const reservations=await CollectionReservation.findAgendaByCompany(collector.userId,page,limit,connection);
- return {reservations:reservations.map(reservation=>({...reservation,reservationScheduledAt:new Date(reservation.reservationScheduledAt).toISOString()})),meta:{total,page,limit}};
-});
+ return {reservations:reservations.map(reservation=>({...reservation,reservationScheduledAt:new Date(reservation.reservationScheduledAt).toISOString(),reservationExpiresAt:new Date(reservation.reservationExpiresAt).toISOString()})),meta:{total,page,limit}};
+});};
 /** CANCEL AN ACTIVE RESERVATION AND RETURN ITS PUBLICATION TO AVAILABLE
  * Lock order is Publication then CollectionReservation, matching acceptance and avoiding deadlocks.
  * @param {import('./sessionPolicy').AuthContext} auth @param {string} reservationUUID
@@ -61,6 +65,7 @@ exports.listAgenda=(auth,page,limit)=>transaction(async connection=>{
  */
 exports.cancelReservation=async(auth,reservationUUID)=>{
  if(!reservationUUIDSchema.safeParse(reservationUUID).success)throw new CustomModelError('CollectionReservation','Identificador inválido.','VALIDATION_ERROR',422);
+ await releaseExpiredReservations();
  return transaction(async connection=>{
   const collector=await requireCollector(auth,connection);
   const current=await CollectionReservation.findByUUID(reservationUUID,collector.userId,connection);
