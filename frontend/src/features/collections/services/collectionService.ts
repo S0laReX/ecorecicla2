@@ -1,6 +1,6 @@
 import {authenticatedRequest} from '../../auth/services/sessionService';
 import {availablePageSchema,availablePublicationSchema} from '../schemas/collectionSchema';
-import {acceptedReservationSchema,agendaPageSchema,cancelledReservationSchema} from '../schemas/reservationSchema';
+import {acceptedReservationSchema,agendaPageSchema,cancelledReservationSchema,confirmedReservationSchema} from '../schemas/reservationSchema';
 import {COLLECTION_PAGE_SIZE} from '../constants/collectionConstants';
 import type {CollectionFilter} from '../types/collection';
 export async function listAvailablePublications(filter:CollectionFilter,signal?:AbortSignal){
@@ -20,4 +20,7 @@ export async function listAgenda(page=1,signal?:AbortSignal){
 }
 export async function cancelReservation(uuid:string){
  return cancelledReservationSchema.parse(await authenticatedRequest(`/collections/reservations/${encodeURIComponent(uuid)}/cancel`,{method:'POST'}));
+}
+export async function confirmReservation(uuid:string){
+ return confirmedReservationSchema.parse(await authenticatedRequest(`/collections/reservations/${encodeURIComponent(uuid)}/confirm`,{method:'POST'}));
 }

@@ -5,6 +5,16 @@ const {apiError}=require('../utils/apiError');
 const {AuditService}=require('../services/auditService');
 const {LogCategory}=require('../utils/logCategories');
 const source='reservationController.js';
+/** CONFIRM A COLLECTED MATERIAL — no client-supplied timestamps or points accepted.
+ * @param {import('express').Request<{reservationUUID:string}>} req @param {import('express').Response} res @returns {Promise<void>}
+ */
+exports.confirmReservation=async(req,res)=>{
+ try{
+  if(req.body!==undefined&&(!req.body||typeof req.body!=='object'||Array.isArray(req.body)||Object.keys(req.body).length))throw new CustomModelError('CollectionReservation','La confirmación no admite datos adicionales.','VALIDATION_ERROR',422);
+  const data=await require('../services/confirmationService').confirmReservation(requireAuth(req),req.params.reservationUUID);
+  res.status(200).json({success:true,message:'Recolección confirmada. Se otorgaron puntos a ambas partes.',data});
+ }catch(error){const failure=apiError(error);await AuditService.logSystem(LogCategory.OPERATIONAL,'ERROR','Collection confirmation failed',source,'confirmReservation',req.ip||null,{requestId:req.requestId,errorCode:failure.errorCode});res.status(failure.statusCode).json(failure);}
+};
 /** REQUIRE VERIFIED AUTH CONTEXT @param {import('express').Request} req @returns {import('../services/sessionPolicy').AuthContext} */
 function requireAuth(req){if(!req.auth)throw new CustomModelError('User','Inicia sesión.','AUTH_REQUIRED',401);return req.auth;}
 /** ACCEPT A PUBLICATION AND SELECT ITS COLLECTION SCHEDULE

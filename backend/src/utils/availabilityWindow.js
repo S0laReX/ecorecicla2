@@ -30,4 +30,13 @@ function isWithinAvailabilityWindow(availabilityText,scheduledAt){
  const minuteOfDay=Number(values.hour)*60+Number(values.minute)+Number(values.second)/60;
  return window.weekdays.has(WEEKDAY_INDEX[weekday])&&minuteOfDay>=window.startMinute&&minuteOfDay<=window.endMinute;
 }
-module.exports={parseAvailabilityWindow,isWithinAvailabilityWindow};
+/** FREEZE THE END OF THE RESERVED DAY'S WINDOW IN UTC (BOLIVIA UTC-04).
+ * @param {string} text @param {Date} scheduledAt @returns {Date|null}
+ */
+function reservationExpiry(text,scheduledAt){
+ const window=parseAvailabilityWindow(text);
+ if(!window||!isWithinAvailabilityWindow(text,scheduledAt))return null;
+ const parts=Object.fromEntries(new Intl.DateTimeFormat('en',{timeZone:'America/La_Paz',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(scheduledAt).map(p=>[p.type,p.value]));
+ return new Date(Date.UTC(Number(parts.year),Number(parts.month)-1,Number(parts.day),4,window.endMinute));
+}
+module.exports={parseAvailabilityWindow,isWithinAvailabilityWindow,reservationExpiry};

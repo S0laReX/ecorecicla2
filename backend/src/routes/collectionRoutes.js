@@ -14,4 +14,5 @@ router.get('/publications',controller.listAvailablePublications);
 router.post('/publications/:publicationUUID/accept',reservationController.acceptPublication);
 router.get('/publications/:publicationUUID',controller.retrieveAvailablePublication);
 router.post('/reservations/:reservationUUID/cancel',reservationController.cancelReservation);
+router.post('/reservations/:reservationUUID/confirm',reservationController.confirmReservation);
 module.exports=router;

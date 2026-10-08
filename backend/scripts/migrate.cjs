@@ -3,7 +3,7 @@ const path=require('node:path');
 const mysql=require('mysql2/promise');
 // Scripts are trusted repository files, never client supplied SQL.
 (async()=>{
- const connection=await mysql.createConnection({host:process.env.DB_HOST,port:Number(process.env.DB_PORT||3306),user:process.env.DB_USER,password:process.env.DB_PASSWORD,database:process.env.DB_NAME,multipleStatements:true});
+ const connection=await mysql.createConnection({host:process.env.DB_HOST,port:Number(process.env.DB_PORT||3306),user:process.env.DB_USER,password:process.env.DB_PASSWORD,database:process.env.DB_NAME,multipleStatements:true,timezone:'Z'});
  try {
   const [tables]=await connection.execute('SELECT TABLE_NAME AS tableName FROM information_schema.tables WHERE TABLE_SCHEMA = DATABASE()');
   const names=tables.map(row=>row.tableName.toLowerCase());
@@ -13,6 +13,7 @@ const mysql=require('mysql2/promise');
   await connection.query(fs.readFileSync(path.resolve(__dirname,'../../database/002_accounts.sql'),'utf8'));
   await connection.query(fs.readFileSync(path.resolve(__dirname,'../../database/003_company_verification.sql'),'utf8'));
   await connection.query(fs.readFileSync(path.resolve(__dirname,'../../database/004_collection_reservations.sql'),'utf8'));
+  await require('./migrate-confirmation.cjs')(connection);
   console.log('Schema ready. Existing accounts and publications preserved.');
  } finally {await connection.end();}
 })().catch(error=>{console.error('Migration failed:',error.code || error.message);process.exitCode=1;});

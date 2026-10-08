@@ -62,13 +62,13 @@ async function createPublicationForUser(auth,fields,file) {
   } finally { connection.release(); }
 }
 /** LIST OWN PUBLICATIONS @param {import('./sessionPolicy').AuthContext} auth @param {number} page @param {number} limit */
-async function listOwnPublications(auth,page,limit){return transaction(async connection=>{
+async function listOwnPublications(auth,page,limit){await require('./collectionExpiryService').releaseExpiredReservations();return transaction(async connection=>{
  const user=await lockSessionUser(auth,connection);authorizePublisher(user,auth.tokenVersion);
  const total=await Publication.readCountByOwner(user.userId,connection);const publications=await Publication.findByOwner(user.userId,page,limit,connection);
  return {publications,meta:{total,page,limit}};
 });}
 /** RETRIEVE OWN PUBLICATION @param {import('./sessionPolicy').AuthContext} auth @param {string} publicationUUID */
-async function retrieveOwnPublication(auth,publicationUUID){return transaction(async connection=>{
+async function retrieveOwnPublication(auth,publicationUUID){await require('./collectionExpiryService').releaseExpiredReservations();return transaction(async connection=>{
  const user=await lockSessionUser(auth,connection);authorizePublisher(user,auth.tokenVersion);
  const publication=await Publication.findByUUID(publicationUUID,user.userId,connection);
  if(!publication)throw new CustomModelError('Publication','Publicación no encontrada.','PUBLICATION_NOT_FOUND',404);return publication;

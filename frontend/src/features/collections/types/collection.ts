@@ -6,3 +6,4 @@ export type AvailablePublication=z.infer<typeof availablePublicationSchema>;
 export type MaterialFilter=typeof MATERIAL_TYPES[number]|'';
 export interface CollectionFilter{materialType:MaterialFilter;page:number}
 export type AgendaReservation=z.infer<typeof agendaReservationSchema>;
+export type ConfirmationResult=z.infer<typeof import('../schemas/reservationSchema').confirmedReservationSchema>;
