@@ -3,7 +3,7 @@ const {ownerIdSchema}=require('../schemas/publicationSchema');
 const CustomModelError=require('../utils/customModelError');
 const {modelGuard}=require('../utils/modelGuard');
 const schema=z.object({userId:ownerIdSchema,taxIdentifier:z.string().regex(/^[A-Za-z0-9-]{4,40}$/),contactName:z.string().min(2).max(120),coverageArea:z.string().min(3).max(300),documentContent:z.instanceof(Buffer).refine(b=>b.length>3&&b.length<=5242880),documentMime:z.enum(['application/pdf','image/jpeg'])}).strict();
-/** COUNT PENDING COMPANY PROFILES @param {string} [search] @param {import('mysql2/promise').PoolConnection} connection @returns {Promise<number>} */
+/** COUNT PENDING COMPANY PROFILES @param {string} search @param {import('mysql2/promise').PoolConnection} connection @returns {Promise<number>} */
 exports.readPendingCount=async(search='',connection)=>modelGuard('CompanyProfile','readPendingCount',async()=>{
  const companyProfileQuery=`SELECT COUNT(CP.id) AS companyProfileCount FROM CompanyProfile CP
  JOIN User U ON U.id = CP.userId WHERE U.roleCode = ? AND U.verificationStatus = ? AND U.deletedAt IS NULL

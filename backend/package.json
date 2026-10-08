@@ -8,6 +8,7 @@
     "setup:local": "node scripts/setup-local.cjs",
     "seed:admin": "node --env-file=.env scripts/seed-admin.cjs",
     "test:integration": "node --env-file=.env test/integration.mysql.cjs",
+    "test:collections": "node --env-file=.env test/collections.mysql.cjs",
     "dev": "node --watch --env-file=.env src/server.js",
     "test": "node --test test/*.test.js",
     "typecheck": "tsc -p jsconfig.json"

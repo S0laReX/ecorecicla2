@@ -68,4 +68,8 @@ Otros frames presentes: [Catálogo · 15:4903](https://www.figma.com/design/kFCZ
 
 ## Continuidad
 
+### US 7 implementada
+
+El frame `15:4390` se volvió a consultar para la US 7. `/recolecciones` y su detalle usan datos reales, filtro por material, fotos, nombre del publicador y navegación de empresa aprobada. Se omiten mapa simulado, distancias y acciones de historias posteriores de acuerdo con el backlog. Los iconos originales adicionales están en `public/design/collection-*.svg`. Ver `US7.md` para endpoints y validación.
+
 Para cada historia futura: seleccionar su frame, adaptar a la feature correspondiente, conectar datos reales, implementar vacío/carga/error/éxito, verificar permisos en backend y comparar móvil/escritorio con Figma. Los cambios visuales no deben modificar el contrato JSON ni la jerarquía de almacenamiento de sesión.

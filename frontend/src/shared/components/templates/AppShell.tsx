@@ -13,11 +13,12 @@ export function AppShell({children}:{children:ReactNode}) {
  const authPage=['/login','/registro','/recuperar','/restablecer'].includes(pathname);
  const links:{href:string;label:string;icon:DesignIconName}[]=user?[
   {href:homeFor(user),label:'Inicio',icon:'home'},
+  ...(user.roleCode==='COMPANY'&&user.verificationStatus==='APPROVED'?[{href:'/recolecciones',label:'Explorar',icon:'collection-explore' as const}]:[]),
   ...(user.roleCode!=='ADMIN'?[
    {href:'/publicaciones/nueva',label:'Publicar',icon:'plus' as const},
    {href:'/publicaciones',label:'Mis publicaciones',icon:'history' as const}]:[])
  ]:[];
- const isActive=(href:string)=>pathname===href||(href==='/publicaciones'&&pathname.startsWith('/publicaciones/')&&pathname!=='/publicaciones/nueva');
+ const isActive=(href:string)=>pathname===href||(href==='/recolecciones'&&pathname.startsWith('/recolecciones/'))||(href==='/publicaciones'&&pathname.startsWith('/publicaciones/')&&pathname!=='/publicaciones/nueva');
  return <div className={user&&!authPage?'app-frame signed-in':'app-frame'}>
   <a className="skip-link" href="#main">Saltar al contenido</a>
   {!authPage&&<header className="site-header"><div className="header-inner">
