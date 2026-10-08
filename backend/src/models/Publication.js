@@ -8,7 +8,30 @@ const {LogCategory} = require('../utils/logCategories');
 /** @typedef {{publicationUUID:string,publicationMaterialType:string,publicationQuantityKg:string,publicationLocationText:string,publicationAvailabilityText:string,publicationStatus:'disponible'|'aceptada'|'confirmada',publicationPhotoDataUrl:string}} PublicationRecord */
 const source = 'Publication.js';
 const Publication = {};
+const {collectionQuerySchema}=require('../schemas/collectionSchema');
+/** @typedef {import('zod').infer<typeof collectionQuerySchema>} CollectionQuery */
+/** @typedef {PublicationRecord & {publisherName:string}} AvailablePublication */
+const availableSelection=`P.internalUUID AS publicationUUID, P.materialType AS publicationMaterialType,
+ CAST(P.quantityKg AS CHAR) AS publicationQuantityKg, P.locationText AS publicationLocationText,
+ P.availabilityText AS publicationAvailabilityText, P.status AS publicationStatus,
+ CONCAT('data:image/jpeg;base64,',REPLACE(TO_BASE64(P.photoJpeg),CHAR(10),'')) AS publicationPhotoDataUrl,
+ U.displayName AS publisherName`;
+const availableWhere='P.ownerId <> ? AND P.status = ? AND P.deletedAt IS NULL AND U.deletedAt IS NULL';
 // READ
+/** COUNT AVAILABLE THIRD-PARTY PUBLICATIONS
+ * @param {string} viewerId @param {CollectionQuery} query @param {import('mysql2/promise').PoolConnection} connection
+ * @returns {Promise<number>}
+ */
+Publication.readAvailableCount=async(viewerId,query,connection)=>{
+ try{
+  if(!ownerIdSchema.safeParse(viewerId).success||!collectionQuerySchema.safeParse(query).success)throw new CustomModelError('Publication','Filtros inválidos.');
+  const publicationQuery=`SELECT COUNT(P.id) AS publicationCount FROM Publication P JOIN User U ON U.id=P.ownerId
+   WHERE ${availableWhere}${query.materialType?' AND P.materialType = ?':''}`;
+  const publicationParams=[viewerId,'disponible',...(query.materialType?[query.materialType]:[])];
+  const [rows]=await connection.execute(publicationQuery,publicationParams);
+  return Number(/** @type {import('mysql2').RowDataPacket[]} */(rows)[0].publicationCount);
+ }catch(error){await AuditService.logSystem(LogCategory.OPERATIONAL,'ERROR','Available publication count failed',source,'readAvailableCount',null);throw error;}
+};
 /** COUNT OWN PUBLICATIONS @param {string} ownerId @param {import('mysql2/promise').PoolConnection} connection @returns {Promise<number>} */
 Publication.readCountByOwner=async(ownerId,connection)=>{
  try{if(!ownerIdSchema.safeParse(ownerId).success)throw new CustomModelError('Publication','Identidad inválida.');
@@ -18,6 +41,35 @@ Publication.readCountByOwner=async(ownerId,connection)=>{
  }catch(error){await AuditService.logSystem(LogCategory.OPERATIONAL,'ERROR','Publication count failed',source,'readCountByOwner',null);throw error;}
 };
 // FIND
+/** FIND AVAILABLE THIRD-PARTY PUBLICATIONS, MOST RECENT FIRST
+ * @param {string} viewerId @param {CollectionQuery} query @param {import('mysql2/promise').PoolConnection} connection
+ * @returns {Promise<AvailablePublication[]>}
+ */
+Publication.findAvailable=async(viewerId,query,connection)=>{
+ try{
+  if(!ownerIdSchema.safeParse(viewerId).success||!collectionQuerySchema.safeParse(query).success)throw new CustomModelError('Publication','Filtros inválidos.');
+  const publicationQuery=`SELECT ${availableSelection} FROM Publication P JOIN User U ON U.id=P.ownerId
+   WHERE ${availableWhere}${query.materialType?' AND P.materialType = ?':''}
+   ORDER BY P.createdAt DESC,P.id DESC LIMIT ? OFFSET ?`;
+  const publicationParams=[viewerId,'disponible',...(query.materialType?[query.materialType]:[]),String(query.limit),String((query.page-1)*query.limit)];
+  const [rows]=await connection.execute(publicationQuery,publicationParams);
+  return /** @type {Array<import('mysql2').RowDataPacket & AvailablePublication>} */(rows);
+ }catch(error){await AuditService.logSystem(LogCategory.OPERATIONAL,'ERROR','Available publication list failed',source,'findAvailable',null);throw error;}
+};
+/** FIND AVAILABLE DETAIL WITH THE SAME VISIBILITY RULES AS THE LIST
+ * @param {string} publicationUUID @param {string} viewerId @param {import('mysql2/promise').PoolConnection} connection
+ * @returns {Promise<AvailablePublication|null>}
+ */
+Publication.findAvailableByUUID=async(publicationUUID,viewerId,connection)=>{
+ try{
+  if(!uuidSchema.safeParse(publicationUUID).success||!ownerIdSchema.safeParse(viewerId).success)throw new CustomModelError('Publication','Identificadores inválidos.');
+  const publicationQuery=`SELECT ${availableSelection} FROM Publication P JOIN User U ON U.id=P.ownerId
+   WHERE ${availableWhere} AND P.internalUUID = ? LIMIT 1`;
+  const publicationParams=[viewerId,'disponible',publicationUUID];
+  const [rows]=await connection.execute(publicationQuery,publicationParams);
+  return /** @type {Array<import('mysql2').RowDataPacket & AvailablePublication>} */(rows)[0]||null;
+ }catch(error){await AuditService.logSystem(LogCategory.OPERATIONAL,'ERROR','Available publication detail failed',source,'findAvailableByUUID',null);throw error;}
+};
 /** FIND OWN PUBLICATION
  * @param {string} publicationUUID @param {string} ownerId
  * @param {import('mysql2/promise').PoolConnection|null} [connection]
