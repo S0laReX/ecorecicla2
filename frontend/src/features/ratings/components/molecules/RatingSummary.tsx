@@ -1,0 +1,2 @@
+import {StarRating} from '../atoms/StarRating';
+export function RatingSummary({average,count,title='Calificación promedio'}:{average:number|null;count:number;title?:string}){return <section className="rating-summary panel" aria-label={title}><div><p className="eyebrow">{title}</p><StarRating value={average} readOnly/><p className="muted">{count===0?'Aún no hay calificaciones recibidas.':`${count} ${count===1?'calificación':'calificaciones'} recibidas`}</p></div><span className="rating-summary-badge" aria-hidden="true">★</span></section>;}

@@ -11,14 +11,17 @@ export function AppShell({children}:{children:ReactNode}) {
  const {user,status,logout}=useAuth();const router=useRouter();const pathname=usePathname();
  const [busy,setBusy]=useState(false);const [error,setError]=useState('');
  const authPage=['/login','/registro','/recuperar','/restablecer'].includes(pathname);
- const links:{href:string;label:string;icon:DesignIconName}[]=user?[
+ const links:{href:string;label:string;icon:DesignIconName}[]=user?(user.roleCode==='ADMIN'?
+  [{href:'/admin',label:'Solicitudes',icon:'home' as const},{href:'/admin/cuentas',label:'Cuentas',icon:'person' as const}]:[
   {href:homeFor(user),label:'Inicio',icon:'home'},
   ...(user.roleCode==='COMPANY'&&user.verificationStatus==='APPROVED'?[{href:'/recolecciones',label:'Explorar',icon:'collection-explore' as const}]:[]),
   ...(user.roleCode==='COMPANY'&&user.verificationStatus==='APPROVED'?[{href:'/agenda',label:'Agenda',icon:'clock' as const}]:[]),
-  ...(user.roleCode!=='ADMIN'?[
+  ...[
    {href:'/publicaciones/nueva',label:'Publicar',icon:'plus' as const},
-   {href:'/publicaciones',label:'Mis publicaciones',icon:'history' as const}]:[])
- ]:[];
+   {href:'/publicaciones',label:'Mis publicaciones',icon:'history' as const},
+   {href:'/calificaciones',label:'Calificar',icon:'profile' as const},
+   {href:'/perfil',label:'Mi perfil',icon:'person' as const}]
+ ]):[];
  const isActive=(href:string)=>pathname===href||(href==='/recolecciones'&&pathname.startsWith('/recolecciones/'))||(href==='/agenda'&&pathname.startsWith('/agenda/'))||(href==='/publicaciones'&&pathname.startsWith('/publicaciones/')&&pathname!=='/publicaciones/nueva');
  return <div className={user&&!authPage?'app-frame signed-in':'app-frame'}>
   <a className="skip-link" href="#main">Saltar al contenido</a>

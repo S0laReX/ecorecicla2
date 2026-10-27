@@ -15,6 +15,13 @@ if ($configuredPort -and $configuredPort.Trim() -ne 'PORT=4000') {
     throw 'Este iniciador requiere PORT=4000. Para puertos personalizados usa las terminales del README.'
 }
 New-Item -ItemType Directory -Path $logDirectory -Force | Out-Null
+# Apply the repository's repeatable schema migrations before serving API routes.
+Push-Location $backendDirectory
+try {
+    Write-Host 'Verificando y aplicando migraciones de la base de datos...'
+    & $nodeExecutable '--env-file=.env' 'scripts/migrate.cjs'
+    if ($LASTEXITCODE -ne 0) { throw 'No se pudieron aplicar las migraciones. Revisa la conexión y las credenciales de MySQL.' }
+} finally { Pop-Location }
 function Test-LocalPort([int] $port) {
     $client = [Net.Sockets.TcpClient]::new()
     try { $task = $client.ConnectAsync('127.0.0.1',$port); return ($task.Wait(500) -and $client.Connected) }
