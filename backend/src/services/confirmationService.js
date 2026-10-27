@@ -1,7 +1,7 @@
 const Reservation=require('../models/CollectionReservation');const Publication=require('../models/Publication');const Award=require('../models/CollectionPointAward');
 const {retryTransaction:transaction}=require('./transactionService');const {lockSessionUser}=require('./sessionPolicy');
 const {uuidSchema}=require('../schemas/publicationSchema');const CustomModelError=require('../utils/customModelError');
-const materialPoints=require('../constants/materialPoints');
+const MaterialPointSetting=require('../models/MaterialPointSetting');
 /** CONFIRM AND AWARD BOTH PARTIES EXACTLY ONCE IN ONE TRANSACTION
  * @param {import('./sessionPolicy').AuthContext} auth @param {string} reservationUUID
  */
@@ -23,8 +23,7 @@ exports.confirmReservation=async(auth,reservationUUID)=>{
    return null; // Commit release BEFORE returning the safe expiration error.
   }
   if(now<reservation.reservationScheduledAt)throw new CustomModelError('CollectionReservation','Todavía no comenzó el horario acordado.','CONFIRMATION_TOO_EARLY',409);
-  const points=materialPoints[publication.publicationMaterialType];
-  if(!points)throw new Error('Material points not configured');
+  const points=await MaterialPointSetting.readEffective(publication.publicationMaterialType,connection);
   await Reservation.finish(reservationUUID,user.userId,'CONFIRMADA',now,connection);
   await Publication.changeReservationStatus(publication.publicationUUID,'aceptada','confirmada',connection);
   await Award.create({reservationId:reservation.reservationId,recipientUserId:publication.publicationOwnerId,recipientRole:'PUBLISHER',points:points.publisher},connection);

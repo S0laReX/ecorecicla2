@@ -27,6 +27,7 @@ let checks=0;const passed=label=>{checks++;console.log(`PASS ${label}`);};
   const old=await publication();const oldUUID=randomUUID();const scheduled=new Date(Date.now()+86400000);scheduled.setUTCHours(16,0,0,0);
   await db.execute('INSERT INTO CollectionReservation (internalUUID,publicationId,companyUserId,scheduledAt) VALUES (?,?,?,?)',[oldUUID,old.id,company.id,scheduled]);
   const migrate=require('../scripts/migrate-confirmation.cjs');await migrate(db);await migrate(db);
+  await db.query(fs.readFileSync(path.join(__dirname,'../../database/008_material_point_settings.sql'),'utf8'));
   const [migrated]=await db.execute('SELECT expiresAt FROM CollectionReservation WHERE internalUUID=?',[oldUUID]);assert.ok(migrated[0].expiresAt>scheduled);passed('US8 active bookings backfilled; migration safely reruns');
   async function reservation(start=-60000,end=600000,material='plastico'){
    const p=await publication(material);const uuid=randomUUID();const [r]=await db.execute('INSERT INTO CollectionReservation (internalUUID,publicationId,companyUserId,scheduledAt,expiresAt) VALUES (?,?,?,?,?)',[uuid,p.id,company.id,new Date(Date.now()+start),new Date(Date.now()+end)]);return {...p,reservationUUID:uuid,reservationId:r.insertId};
