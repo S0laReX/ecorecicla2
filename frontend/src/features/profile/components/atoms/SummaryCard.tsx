@@ -1,0 +1,1 @@
+export function SummaryCard({label,value,detail}:{label:string;value:string;detail?:string}){return <div className="profile-summary-card"><dt>{label}</dt><dd>{value}</dd>{detail&&<p>{detail}</p>}</div>;}
