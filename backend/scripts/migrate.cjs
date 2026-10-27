@@ -14,6 +14,8 @@ const mysql=require('mysql2/promise');
   await connection.query(fs.readFileSync(path.resolve(__dirname,'../../database/003_company_verification.sql'),'utf8'));
   await connection.query(fs.readFileSync(path.resolve(__dirname,'../../database/004_collection_reservations.sql'),'utf8'));
   await require('./migrate-confirmation.cjs')(connection);
+  await connection.query(fs.readFileSync(path.resolve(__dirname,'../../database/006_collection_ratings.sql'),'utf8'));
+  await connection.query(fs.readFileSync(path.resolve(__dirname,'../../database/007_account_status_audit.sql'),'utf8'));
   console.log('Schema ready. Existing accounts and publications preserved.');
  } finally {await connection.end();}
 })().catch(error=>{console.error('Migration failed:',error.code || error.message);process.exitCode=1;});

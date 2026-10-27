@@ -11,6 +11,8 @@
     "test:collections": "node --env-file=.env test/collections.mysql.cjs",
     "test:reservations": "node --env-file=.env test/reservations.mysql.cjs",
     "test:confirmation": "node --env-file=.env test/confirmation.mysql.cjs",
+    "test:ratings": "node --env-file=.env test/ratings.mysql.cjs",
+    "test:admin-accounts": "node --env-file=.env test/adminAccounts.mysql.cjs",
     "dev": "node --watch --env-file=.env src/server.js",
     "test": "node --test test/*.test.js",
     "typecheck": "tsc -p jsconfig.json"
