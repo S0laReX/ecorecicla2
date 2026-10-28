@@ -1,3 +1,4 @@
+const Notice=require('../models/Notice');
 const Reservation=require('../models/CollectionReservation');const Publication=require('../models/Publication');const Award=require('../models/CollectionPointAward');
 const {retryTransaction:transaction}=require('./transactionService');const {lockSessionUser}=require('./sessionPolicy');
 const {uuidSchema}=require('../schemas/publicationSchema');const CustomModelError=require('../utils/customModelError');
@@ -28,6 +29,10 @@ exports.confirmReservation=async(auth,reservationUUID)=>{
   await Publication.changeReservationStatus(publication.publicationUUID,'aceptada','confirmada',connection);
   await Award.create({reservationId:reservation.reservationId,recipientUserId:publication.publicationOwnerId,recipientRole:'PUBLISHER',points:points.publisher},connection);
   await Award.create({reservationId:reservation.reservationId,recipientUserId:user.userId,recipientRole:'COLLECTOR',points:points.collector},connection);
+  for(const recipientUserId of [publication.publicationOwnerId,user.userId]){
+   await Notice.create({recipientUserId,kind:'CONFIRMED',eventUUID:reservationUUID,title:'Recolección confirmada',body:'La recolección se completó. Puedes consultar los puntos obtenidos en tu perfil.'},connection);
+   await Notice.create({recipientUserId,kind:'RATE',eventUUID:reservationUUID,title:'¡Califica tu experiencia!',body:'Tu recolección fue completada. Comparte tu valoración de la otra parte.'},connection);
+  }
   return {reservationUUID,publicationUUID:publication.publicationUUID,publicationStatus:'confirmada',confirmedAt:now.toISOString(),publisherPoints:points.publisher,collectorPoints:points.collector};
  });
  if(!result)throw new CustomModelError('CollectionReservation','El horario venció. La publicación volvió a estar disponible sin penalización.','RESERVATION_EXPIRED',409);

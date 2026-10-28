@@ -9,7 +9,7 @@ let checks=0;const passed=label=>console.log(`PASS ${++checks} ${label}`);
  const db=await mysql.createConnection({host:process.env.DB_HOST,port:Number(process.env.DB_PORT||3306),user:process.env.DB_USER,password:process.env.DB_PASSWORD,multipleStatements:true,timezone:'Z'});let created=false;
  try{
   assert.match(databaseName,/^ecorecicla_test_[a-f0-9]{16}$/);await db.query(`CREATE DATABASE ${databaseName} CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci`);created=true;await db.changeUser({database:databaseName});
-  for(const file of ['001_sprint1.sql','002_accounts.sql','003_company_verification.sql','004_collection_reservations.sql'])await db.query(fs.readFileSync(path.join(__dirname,'../../database',file),'utf8'));
+  for(const file of ['001_sprint1.sql','002_accounts.sql','003_company_verification.sql','004_collection_reservations.sql','010_notices.sql'])await db.query(fs.readFileSync(path.join(__dirname,'../../database',file),'utf8'));
   await require('../scripts/migrate-confirmation.cjs')(db);
   const migrate=()=>db.query(fs.readFileSync(path.join(__dirname,'../../database/008_material_point_settings.sql'),'utf8'));await migrate();await migrate();
   const password='MaterialPointsTest2026',hash=await hashPassword(password);

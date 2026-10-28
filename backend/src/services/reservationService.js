@@ -1,3 +1,4 @@
+const Notice=require('../models/Notice');
 const Publication=require('../models/Publication');
 const CollectionReservation=require('../models/CollectionReservation');
 const {retryTransaction:transaction}=require('./transactionService');
@@ -42,6 +43,7 @@ exports.acceptPublication=async(auth,publicationUUID,input)=>{
    if(!expiresAt)throw new CustomModelError('CollectionReservation','Horario inválido.');
    await Publication.changeReservationStatus(publicationUUID,'disponible','aceptada',connection);
    const reservationUUID=await CollectionReservation.create({publicationId:publication.publicationId,companyUserId:collector.userId,scheduledAt,expiresAt},connection);
+   await Notice.create({recipientUserId:publication.publicationOwnerId,kind:'ACCEPTED',eventUUID:reservationUUID,title:'Tu publicación fue aceptada',body:'Una empresa reservó tus materiales. Consulta tus publicaciones para ver su estado.'},connection);
    return {reservationUUID,publicationUUID,scheduledAt:scheduledAt.toISOString()};
   });
  }catch(error){

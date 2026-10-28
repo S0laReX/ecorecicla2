@@ -13,6 +13,7 @@ function requireAuth(req){if(!req.auth)throw new CustomModelError('User','Inicia
  */
 exports.retrieveRoleDashboard=async(req,res)=>{
  try{const user=await authService.currentUser(requireAuth(req));if(user.roleCode!==req.params.role)throw new CustomModelError('User','No tienes acceso a este panel.','ROLE_FORBIDDEN',403);
+ if(user.roleCode==='COMPANY'&&user.verificationStatus==='REJECTED')throw new CustomModelError('User','Tu solicitud empresarial fue rechazada.','COMPANY_REJECTED',403);
  if(user.roleCode==='COMPANY'&&user.verificationStatus!=='APPROVED')throw new CustomModelError('User','Tu empresa está pendiente de aprobación.','COMPANY_PENDING',403);
  res.status(200).json({success:true,message:'Acceso al panel autorizado.',data:{user}});}
  catch(error){const failure=apiError(error);await AuditService.logSystem(LogCategory.AUTH,'ERROR','Dashboard access failed','authController.js','retrieveRoleDashboard',req.ip||null,{errorCode:failure.errorCode});res.status(failure.statusCode).json(failure);}

@@ -1,0 +1,13 @@
+import {z} from 'zod';
+const text=(max:number)=>z.string().trim().max(max).refine(value=>!/[\x00-\x1f\x7f]/.test(value));
+export const profileInputSchema=z.object({displayName:text(120).pipe(z.string().min(2)),contact:text(120),address:text(300)}).strict();
+export const profileSchema=profileInputSchema.extend({userUUID:z.string().uuid(),email:z.string().email(),roleCode:z.enum(['USER','COMPANY']),verificationStatus:z.string()});
+export const summarySchema=z.object({activePublications:z.number().int().nonnegative(),confirmedCollections:z.number().int().nonnegative(),totalPoints:z.number().nonnegative(),averageRating:z.number().min(1).max(5).nullable(),ratingCount:z.number().int().nonnegative()});
+export const profileResponseSchema=z.object({profile:profileSchema,summary:summarySchema});
+export const historyStatusSchema=z.enum(['ACEPTADA','CONFIRMADA','CANCELADA','VENCIDA']);
+export const historyResponseSchema=z.object({success:z.literal(true),data:z.array(z.object({reservationUUID:z.string().uuid(),materialType:z.enum(['plastico','papel','vidrio','metal','organico']),quantityKg:z.string(),date:z.string().datetime(),status:historyStatusSchema,points:z.number().nonnegative()})),meta:z.object({total:z.number().int().nonnegative(),page:z.number().int().positive(),limit:z.number().int().positive()})});
+export type Profile=z.infer<typeof profileSchema>;
+export type ProfileInput=z.infer<typeof profileInputSchema>;
+export type Summary=z.infer<typeof summarySchema>;
+export type History=z.infer<typeof historyResponseSchema>;
+export type HistoryStatus=z.infer<typeof historyStatusSchema>;

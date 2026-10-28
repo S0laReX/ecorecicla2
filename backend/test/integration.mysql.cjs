@@ -72,7 +72,7 @@ const check=(label)=>{passed++;console.log(`PASS ${label}`);};
   assert.equal((await request(app).get('/api/publications/me').auth(companyAccess,{type:'bearer'})).status,403);
   assert.equal((await request(app).post('/api/auth/login').send({email:'company@example.test',password})).body.errorCode,'ACCOUNT_SUSPENDED');
   await admin.execute('UPDATE User SET accountStatus = ?, verificationStatus = ? WHERE internalUUID = ?',['ACTIVE','REJECTED',company.body.data.userUUID]);
-  assert.equal((await request(app).post('/api/auth/login').send({email:'company@example.test',password})).body.errorCode,'COMPANY_REJECTED');check('suspended/rejected company cannot continue or log in');
+  assert.equal((await request(app).post('/api/auth/login').send({email:'company@example.test',password})).status,200);assert.equal((await request(app).get('/api/publications/me').auth(companyAccess,{type:'bearer'})).body.errorCode,'COMPANY_REJECTED');check('suspension blocks login; rejected company can log in but cannot operate');
   const before=new Set(fs.existsSync(path.resolve(__dirname,'../.local/recovery'))?fs.readdirSync(path.resolve(__dirname,'../.local/recovery')):[]);
   const resetRequest=await request(app).post('/api/auth/forgot-password').send({email:'one@example.test'});assert.equal(resetRequest.status,200);
   assert.deepEqual((await request(app).post('/api/auth/forgot-password').send({email:'missing@example.test'})).body,resetRequest.body);
