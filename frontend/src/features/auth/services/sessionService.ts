@@ -32,7 +32,7 @@ async function authenticatedResponse(path:string,init:RequestInit={}):Promise<Re
 }
 export async function authenticatedRequest(path:string,init:RequestInit={},envelope=false):Promise<unknown>{
  const response=await authenticatedResponse(path,init);
- try{return await decode(response,envelope);}catch(error){if(error instanceof ApiRequestError&&(error.statusCode===401||['ACCOUNT_SUSPENDED','COMPANY_REJECTED'].includes(error.errorCode)))clearSession();throw error;}
+ try{return await decode(response,envelope);}catch(error){if(error instanceof ApiRequestError&&(error.statusCode===401||['ACCOUNT_SUSPENDED'].includes(error.errorCode)))clearSession();throw error;}
 }
 export async function authenticatedBlobRequest(path:string):Promise<{blob:Blob;contentType:string}>{
  const response=await authenticatedResponse(path);

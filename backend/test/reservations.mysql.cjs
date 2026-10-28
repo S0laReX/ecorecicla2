@@ -12,7 +12,7 @@ let checks=0;const passed=label=>{checks++;console.log(`PASS ${label}`);};
   assert.match(databaseName,/^ecorecicla_test_[a-f0-9]{16}$/);
   await connection.query(`CREATE DATABASE ${databaseName} CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci`);created=true;
   await connection.changeUser({database:databaseName});
-  for(const file of ['001_sprint1.sql','002_accounts.sql','003_company_verification.sql','004_collection_reservations.sql','005_collection_confirmation.sql'])await connection.query(fs.readFileSync(path.join(__dirname,'../../database',file),'utf8'));
+  for(const file of ['001_sprint1.sql','002_accounts.sql','003_company_verification.sql','004_collection_reservations.sql','010_notices.sql','005_collection_confirmation.sql'])await connection.query(fs.readFileSync(path.join(__dirname,'../../database',file),'utf8'));
   const password='ReservationsTest2026';const passwordHash=await hashPassword(password);
   async function account(role,verification,displayName){
    const userUUID=randomUUID();const email=`${userUUID}@example.test`;

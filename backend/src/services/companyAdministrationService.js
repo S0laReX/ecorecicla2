@@ -1,3 +1,4 @@
+const Notice=require('../models/Notice');
 const { pool } = require('../config/database');
 const User = require('../models/User');
 const CompanyProfile = require('../models/CompanyProfile');
@@ -47,6 +48,7 @@ async function decideCompanyVerification(auth, companyUUID, input) {
         if (!profile) throw new CustomModelError('CompanyProfile', 'La solicitud no está pendiente o no existe.', 'COMPANY_DECISION_CONFLICT', 409);
         await User.updateCompanyVerificationStatus(profile.companyUserId, input.decision, connection);
         const decisionAt = await CompanyVerificationDecision.create({ companyUserId: profile.companyUserId, adminUserId: administrator.userId, decision: input.decision, reason: input.reason }, connection);
+        await Notice.create({recipientUserId:profile.companyUserId,kind:input.decision,eventUUID:companyUUID,title:input.decision==='APPROVED'?'Tu empresa fue aprobada':'Tu solicitud fue rechazada',body:input.decision==='APPROVED'?'Ya puedes acceder a las funciones de recolección.':(input.reason||'Tu solicitud no fue aprobada.')},connection);
         return { companyUUID, verificationStatus: input.decision, decisionAt: new Date(decisionAt).toISOString(), administratorUUID: administrator.userUUID };
     });
     await AuditService.logUserActivity(result.administratorUUID, 'company-verification-decision', { companyUUID, decision: result.verificationStatus });

@@ -14,6 +14,7 @@
     "test:ratings": "node --env-file=.env test/ratings.mysql.cjs",
     "test:admin-accounts": "node --env-file=.env test/adminAccounts.mysql.cjs",
     "test:material-points": "node --env-file=.env test/materialPoints.mysql.cjs",
+    "test:notices": "node --env-file=.env test/notices.mysql.cjs",
     "test:profile": "node --env-file=.env test/profile.mysql.cjs",
     "dev": "node --watch --env-file=.env src/server.js",
     "test": "node --test test/*.test.js",
