@@ -1,6 +1,5 @@
 'use client';
 import {useState} from 'react';
-import Link from 'next/link';
 import {useManagedAccounts} from '../../hooks/useManagedAccounts';
 import {ManagedAccountsList} from '../organisms/ManagedAccountsList';
 import {Modal} from '../../../../shared/components/molecules/Modal';
@@ -14,7 +13,7 @@ export function AdminAccountsTemplate(){
  const close=()=>{if(state.saving)return;setSelected(null);setNextStatus(null);setActionError('');};
  const confirm=async()=>{if(!selected||!nextStatus)return;try{await state.changeStatus(selected,nextStatus);setSelected(null);setNextStatus(null);setActionError('');}catch(cause){setActionError(cause instanceof Error?cause.message:'No se pudo cambiar el estado.');}};
  return <section className="admin-companies-page admin-accounts-page"><div className="admin-workspace">
-  <aside className="admin-side-rail" aria-label="Navegación de administración"><span className="admin-rail-brand">EcoRecicla</span><p>Panel Admin</p><nav><Link href="/admin"><span aria-hidden="true">▦</span>Solicitudes</Link><Link href="/admin/cuentas" aria-current="page"><span aria-hidden="true">♙</span>Cuentas</Link></nav></aside>
+
   <div className="admin-workspace-main"><header className="admin-page-heading"><div><p className="eyebrow">ADMINISTRACIÓN</p><h1>Gestión de cuentas</h1><p>Consulta usuarios y empresas, y controla el acceso sin borrar su actividad.</p></div><span className="pending-count"><strong>{state.total}</strong><small>cuentas</small></span></header>
    <div className="admin-search-row"><label className="admin-search-field"><span className="sr-only">Buscar por nombre o correo</span><span aria-hidden="true">⌕</span><input type="search" placeholder="Buscar por nombre o correo…" value={state.searchInput} onChange={event=>state.setSearchInput(event.target.value)} maxLength={120}/></label><label className="admin-filter-select-label"><span className="sr-only">Filtrar cuentas por estado</span><select className="admin-filter-select" value={state.status} onChange={event=>{state.setStatus(event.target.value as AccountStatusFilter);state.setPage(1);}}>{(Object.keys(statusLabels) as AccountStatusFilter[]).map(value=><option key={value} value={value}>{statusLabels[value]}</option>)}</select></label></div>
    {state.notice&&<Alert><span className="admin-notice-content">{state.notice}<button type="button" className="notice-dismiss" aria-label="Cerrar aviso" onClick={()=>state.setNotice('')}>×</button></span></Alert>}

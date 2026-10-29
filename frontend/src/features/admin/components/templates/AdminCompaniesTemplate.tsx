@@ -1,6 +1,5 @@
 'use client';
 import {useState} from 'react';
-import Link from 'next/link';
 import {useCompanyApplications} from '../../hooks/useCompanyApplications';
 import {CompanyApplicationsList} from '../organisms/CompanyApplicationsList';
 import {CompanyApplicationDetail} from '../organisms/CompanyApplicationDetail';
@@ -17,7 +16,7 @@ export function AdminCompaniesTemplate(){
  };
  const totalPages=Math.max(1,Math.ceil(state.meta.total/state.meta.limit));
  return <section className="admin-companies-page">
-  <div className="admin-workspace"><aside className="admin-side-rail" aria-label="Navegación de administración"><span className="admin-rail-brand">EcoRecicla</span><p>Panel Admin</p><nav><Link href="/admin" aria-current="page"><span aria-hidden="true">▦</span>Solicitudes</Link><Link href="/admin/cuentas"><span aria-hidden="true">♙</span>Cuentas</Link></nav></aside>
+  <div className="admin-workspace">
    <div className="admin-workspace-main"><header className="admin-page-heading"><div><p className="eyebrow">ADMINISTRACIÓN</p><h1>Gestión de compañías</h1><p>Revisa los documentos y verifica las solicitudes de empresas recolectoras.</p></div><span className="pending-count"><strong>{state.meta.total}</strong><small>pendientes</small></span></header>
     <div className="admin-search-row"><label className="admin-search-field"><span className="sr-only">Buscar empresa por nombre o RUC/NIT</span><span aria-hidden="true">⌕</span><input type="search" placeholder="Buscar por nombre o RUC/NIT…" value={state.searchInput} onChange={event=>state.setSearchInput(event.target.value)} maxLength={120}/></label><span className="admin-filter-chip">Estado: Pendiente</span></div>
     {state.notice&&<Alert><span className="admin-notice-content">{state.notice}<button type="button" className="notice-dismiss" aria-label="Cerrar aviso" onClick={()=>state.setNotice('')}>×</button></span></Alert>}
