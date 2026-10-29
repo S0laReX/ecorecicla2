@@ -8,6 +8,7 @@ import {Button} from '../atoms/Button';
 import {DesignIcon,type DesignIconName} from '../atoms/DesignIcon';
 import {Badge} from '../../../features/notices/components/atoms/Badge';
 import {useUnreadNotices} from '../../../features/notices/hooks/useUnreadNotices';
+import {NoticeToasts} from '../../../features/notices/components/organisms/NoticeToasts';
 import {Alert} from '../molecules/Alert';
 export function AppShell({children}:{children:ReactNode}) {
  const {user,status,logout}=useAuth();const router=useRouter();const pathname=usePathname();
@@ -29,6 +30,7 @@ export function AppShell({children}:{children:ReactNode}) {
  const isActive=(href:string)=>pathname===href||(href==='/recolecciones'&&pathname.startsWith('/recolecciones/'))||(href==='/agenda'&&pathname.startsWith('/agenda/'))||(href==='/publicaciones'&&pathname.startsWith('/publicaciones/')&&pathname!=='/publicaciones/nueva');
  return <div className={user&&!authPage?'app-frame signed-in':'app-frame'}>
   <a className="skip-link" href="#main">Saltar al contenido</a>
+  {!authPage&&<NoticeToasts/>}
   {!authPage&&<header className="site-header"><div className="header-inner">
    <Link className="brand" href={user?homeFor(user):'/'} aria-label="EcoRecicla, inicio"><DesignIcon name="leaf-dashboard"/>EcoRecicla</Link>
    {user?<><nav className="desktop-nav" aria-label="Navegación principal">{links.map(link=><Link key={link.href} href={link.href} aria-current={isActive(link.href)?'page':undefined}>{link.label}{link.href==='/avisos'&&<Badge count={unreadCount}/>}</Link>)}</nav>
