@@ -1,0 +1,16 @@
+import {z} from 'zod';
+const text=(max:number)=>z.string().trim().max(max).refine(value=>!/[\x00-\x1f\x7f]/.test(value));
+export const rewardInputSchema=z.object({name:text(120).pipe(z.string().min(2)),description:text(1000),pointsCost:z.number().int().min(1).max(1000000),stock:z.number().int().min(0).max(1000000),isActive:z.boolean()}).strict();
+export const rewardSchema=rewardInputSchema.extend({rewardUUID:z.string().uuid(),version:z.number().int().positive()});
+export const walletSchema=z.object({earnedPoints:z.number().int().nonnegative(),spentPoints:z.number().int().nonnegative(),availablePoints:z.number().int().nonnegative()});
+export const metaSchema=z.object({total:z.number().int().nonnegative(),page:z.number().int().positive(),limit:z.number().int().positive()});
+export const catalogSchema=z.object({items:z.array(rewardSchema),meta:metaSchema,wallet:walletSchema.optional()});
+export const redemptionSchema=z.object({redemptionUUID:z.string().uuid(),rewardUUID:z.string().uuid(),rewardName:z.string(),pointsCost:z.number().int().positive(),createdAt:z.string().datetime(),deliveredAt:z.string().datetime().nullable(),userName:z.string().optional(),userEmail:z.string().email().optional()});
+export const redemptionsSchema=z.object({items:z.array(redemptionSchema),meta:metaSchema});
+export const redeemResultSchema=z.object({redemption:redemptionSchema,wallet:walletSchema});
+export type Reward=z.infer<typeof rewardSchema>;
+export type RewardInput=z.infer<typeof rewardInputSchema>;
+export type Catalog=z.infer<typeof catalogSchema>;
+export type Redemption=z.infer<typeof redemptionSchema>;
+export type RedemptionHistory=z.infer<typeof redemptionsSchema>;
+export type RedemptionStatus='ALL'|'PENDING'|'DELIVERED';

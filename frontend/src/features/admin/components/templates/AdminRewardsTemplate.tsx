@@ -1,0 +1,23 @@
+'use client';
+import {useState} from 'react';
+import {useRewards} from '../../../rewards/hooks/useRewards';
+import {useRedemptions} from '../../../rewards/hooks/useRedemptions';
+import {deliverRedemption} from '../../../rewards/services/rewardService';
+import type {Reward,Redemption,RedemptionStatus} from '../../../rewards/schemas/rewardSchema';
+import {RewardCard} from '../../../rewards/components/organisms/RewardCard';
+import {RedemptionList} from '../../../rewards/components/organisms/RedemptionList';
+import {RewardForm} from '../organisms/RewardForm';
+import {Button} from '../../../../shared/components/atoms/Button';
+import {Alert} from '../../../../shared/components/molecules/Alert';
+import {Modal} from '../../../../shared/components/molecules/Modal';
+import {Pagination} from '../../../../shared/components/molecules/Pagination';
+export function AdminRewardsTemplate(){
+ const catalog=useRewards(true);const history=useRedemptions(true);const [editor,setEditor]=useState<{reward?:Reward}|null>(null);const [selected,setSelected]=useState<Redemption|null>(null);const [busy,setBusy]=useState(false);const [error,setError]=useState('');const [notice,setNotice]=useState('');
+ async function deliver(){if(!selected||busy)return;setBusy(true);setError('');try{await deliverRedemption(selected.redemptionUUID);setSelected(null);setNotice('Entrega registrada.');history.reload();}catch(cause){setError(cause instanceof Error?cause.message:'No se pudo registrar la entrega.');}finally{setBusy(false);}}
+ return <section className="admin-companies-page"><div className="admin-workspace"><div className="admin-workspace-main">
+ <header className="admin-page-heading"><div><p className="eyebrow">RECOMPENSAS</p><h1>Premios y canjes</h1><p>Publica productos, define su costo en puntos y registra las entregas a usuarios.</p></div><Button onClick={()=>{setEditor({});setNotice('');}}>Crear premio</Button></header>{notice&&<Alert>{notice}</Alert>}
+ <section aria-labelledby="admin-catalog-title"><div className="page-title"><h2 id="admin-catalog-title">Catálogo</h2><Button className="button-secondary" disabled={catalog.loading||busy} onClick={catalog.reload}>Actualizar</Button></div>{catalog.loading?<p role="status">Cargando catálogo…</p>:catalog.error?<><Alert isError>{catalog.error}</Alert><Button onClick={catalog.reload}>Reintentar</Button></>:catalog.data&&<>{catalog.data.items.length?<div className="reward-grid">{catalog.data.items.map(reward=><RewardCard key={reward.rewardUUID} reward={reward} admin onSelect={()=>{setEditor({reward});setNotice('');}}/>)}</div>:<div className="panel empty-state"><h3>Crea tu primer premio</h3><p>Los usuarios podrán intercambiar sus puntos por los productos que publiques.</p></div>}<Pagination page={catalog.page} total={catalog.data.meta.total} limit={catalog.data.meta.limit} onPage={catalog.setPage}/></>}</section>
+ <section className="redemptions-section" aria-labelledby="admin-redemptions-title"><div className="page-title"><h2 id="admin-redemptions-title">Canjes de usuarios</h2><label className="reward-status-filter">Estado<select value={history.status} onChange={e=>history.changeStatus(e.target.value as RedemptionStatus)}><option value="PENDING">Pendientes</option><option value="DELIVERED">Entregados</option><option value="ALL">Todos</option></select></label></div>{history.loading?<p role="status">Cargando canjes…</p>:history.error?<><Alert isError>{history.error}</Alert><Button onClick={history.reload}>Reintentar</Button></>:history.data&&<><RedemptionList items={history.data.items} admin busy={busy} onDeliver={item=>{setSelected(item);setError('');setNotice('');}}/><Pagination page={history.page} total={history.data.meta.total} limit={history.data.meta.limit} onPage={history.setPage}/></>}</section>
+ </div></div><Modal open={!!editor} title={editor?.reward?'Editar premio':'Crear premio'} onClose={()=>{if(!busy)setEditor(null);}}>{editor&&<RewardForm key={editor.reward?.rewardUUID||'new'} initial={editor.reward} onBusy={setBusy} onCancel={()=>setEditor(null)} onSaved={()=>{setEditor(null);setNotice('Premio guardado.');catalog.setPage(1);catalog.reload();}}/>}</Modal>
+ <Modal open={!!selected} title="Registrar entrega" onClose={()=>{if(!busy)setSelected(null);}}>{selected&&<><p>Confirma que entregaste <strong>{selected.rewardName}</strong> a <strong>{selected.userName}</strong>.</p><p className="redemption-code">Código: <code>{selected.redemptionUUID}</code></p>{error&&<Alert isError>{error}</Alert>}<div className="actions"><Button className="button-secondary" disabled={busy} onClick={()=>setSelected(null)}>Cancelar</Button><Button disabled={busy} onClick={()=>void deliver()}>{busy?'Registrando…':'Confirmar entrega'}</Button></div></>}</Modal></section>;
+}
