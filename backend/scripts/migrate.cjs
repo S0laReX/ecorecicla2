@@ -1,9 +1,10 @@
 const fs=require('node:fs');
 const path=require('node:path');
 const mysql=require('mysql2/promise');
+const {databaseOptions}=require('../src/config/databaseOptions');
 // Scripts are trusted repository files, never client supplied SQL.
 (async()=>{
- const connection=await mysql.createConnection({host:process.env.DB_HOST,port:Number(process.env.DB_PORT||3306),user:process.env.DB_USER,password:process.env.DB_PASSWORD,database:process.env.DB_NAME,multipleStatements:true,timezone:'Z'});
+ const connection=await mysql.createConnection({...databaseOptions(),multipleStatements:true,timezone:'Z'});
  try {
   const [tables]=await connection.execute('SELECT TABLE_NAME AS tableName FROM information_schema.tables WHERE TABLE_SCHEMA = DATABASE()');
   const names=tables.map(row=>row.tableName.toLowerCase());

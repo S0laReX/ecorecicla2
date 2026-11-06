@@ -1,14 +1,19 @@
+const {serverConfig}=require('./config/runtime');
+const {host,port}=serverConfig();
 const app = require('./app');
-for (const name of ['DB_HOST','DB_NAME','DB_USER','DB_PASSWORD','JWT_PUBLIC_KEY','JWT_ISSUER','JWT_AUDIENCE']) {
-  if (!process.env[name]) throw new Error(`Missing required configuration: ${name}`);
-}
-const server = app.listen(Number(process.env.PORT || 4000),'127.0.0.1');
-server.on('listening',()=>{console.log(`EcoRecicla API: http://127.0.0.1:${process.env.PORT||4000}`);});
+const server = app.listen(port,host);
+server.on('listening',()=>{console.log(`EcoRecicla API listening on ${host}:${port}`);});
 server.on('error',error=>{console.error('No se pudo iniciar la API:',/** @type {NodeJS.ErrnoException} */(error).code);process.exitCode=1;});
 server.requestTimeout = 30000;
 server.headersTimeout = 15000;
 const {pool}=require('./config/database');
 const stopExpiryWorker=require('./services/collectionExpiryService').startExpiryWorker();
+let stopping=false;
 /** CLOSE HTTP AND DATABASE RESOURCES @returns {void} */
-function shutdown(){stopExpiryWorker();server.close(()=>{void pool.end();});}
+function shutdown(){
+ if(stopping)return;
+ stopping=true;app.locals.shuttingDown=true;stopExpiryWorker();
+ const deadline=setTimeout(()=>{console.error('API shutdown timed out');process.exit(1);},10000);deadline.unref();
+ server.close(()=>{void pool.end().catch(()=>{process.exitCode=1;}).finally(()=>clearTimeout(deadline));});
+}
 process.once('SIGINT',shutdown);process.once('SIGTERM',shutdown);
