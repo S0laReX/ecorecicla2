@@ -1,0 +1,54 @@
+# This Blueprint uses Render's paid Starter plan for pre-deploy migrations.
+# Repository root stays available so backend/scripts can read database/*.sql.
+services:
+  - type: web
+    name: ecorecicla-api
+    runtime: node
+    plan: starter
+    buildCommand: npm ci --prefix backend --omit=dev
+    preDeployCommand: npm run migrate --prefix backend
+    startCommand: npm start --prefix backend
+    healthCheckPath: /api/ready
+    envVars:
+      - key: NODE_VERSION
+        value: '22'
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: TRUST_PROXY_HOPS
+        value: '1'
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_SSL
+        sync: false
+      - key: JWT_PUBLIC_KEY
+        sync: false
+      - key: JWT_ISSUER
+        value: ecorecicla-auth
+      - key: JWT_AUDIENCE
+        value: ecorecicla-api
+      - key: JWT_PRIVATE_KEY_PATH
+        value: /etc/secrets/jwt-private.pem
+      - key: FRONTEND_ORIGIN
+        sync: false
+      - key: RECOVERY_DELIVERY
+        value: smtp
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: '587'
+      - key: SMTP_FROM
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
