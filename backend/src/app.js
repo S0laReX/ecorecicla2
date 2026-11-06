@@ -18,6 +18,8 @@ app.use('/api/collections',require('./routes/collectionRoutes'));
 app.use('/api/ratings',require('./routes/ratingRoutes'));
 app.use('/api/notices',require('./routes/noticeRoutes'));
 app.use('/api/profile',require('./routes/profileRoutes'));
+app.use('/api/rewards',require('./routes/rewardRoutes'));
+app.use('/api/rankings',require('./routes/rankingRoutes'));
 app.use((_req,res)=>{res.status(404).json({success:false,message:'Recurso no encontrado.',errorCode:'NOT_FOUND',statusCode:404});});
 /** @type {import('express').ErrorRequestHandler} */
 const errorHandler = async (error,req,res,_next) => {

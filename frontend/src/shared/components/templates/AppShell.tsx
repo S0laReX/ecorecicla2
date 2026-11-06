@@ -16,11 +16,13 @@ export function AppShell({children}:{children:ReactNode}) {
  const [busy,setBusy]=useState(false);const [error,setError]=useState('');
  const authPage=['/login','/registro','/recuperar','/restablecer'].includes(pathname);
  const links:{href:string;label:string;icon:DesignIconName}[]=user?(user.roleCode==='ADMIN'?
-  [{href:'/admin',label:'Solicitudes',icon:'home' as const},{href:'/admin/cuentas',label:'Cuentas',icon:'person' as const},{href:'/admin/puntos',label:'Puntos',icon:'profile' as const}]:user.verificationStatus==='REJECTED'?[{href:'/avisos',label:'Avisos',icon:'info'}]:[
+  [{href:'/admin',label:'Solicitudes',icon:'home' as const},{href:'/admin/cuentas',label:'Cuentas',icon:'person' as const},{href:'/admin/puntos',label:'Puntos',icon:'profile' as const},{href:'/admin/premios',label:'Premios',icon:'step-reward' as const},{href:'/ranking',label:'Ranking',icon:'company' as const}]:user.verificationStatus==='REJECTED'?[{href:'/avisos',label:'Avisos',icon:'info'}]:[
   {href:homeFor(user),label:'Inicio',icon:'home'},
   {href:'/avisos',label:'Avisos',icon:'info'},
   ...(user.roleCode==='COMPANY'&&user.verificationStatus==='APPROVED'?[{href:'/recolecciones',label:'Explorar',icon:'collection-explore' as const}]:[]),
   ...(user.roleCode==='COMPANY'&&user.verificationStatus==='APPROVED'?[{href:'/agenda',label:'Agenda',icon:'clock' as const}]:[]),
+  ...(user.roleCode==='COMPANY'&&user.verificationStatus==='APPROVED'?[{href:'/ranking',label:'Ranking',icon:'company' as const}]:[]),
+  ...(user.roleCode==='USER'?[{href:'/premios',label:'Premios',icon:'step-reward' as const}]:[]),
   ...[
    {href:'/publicaciones/nueva',label:'Publicar',icon:'plus' as const},
    {href:'/publicaciones',label:'Mis publicaciones',icon:'history' as const},

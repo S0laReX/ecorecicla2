@@ -16,6 +16,7 @@
     "test:material-points": "node --env-file=.env test/materialPoints.mysql.cjs",
     "test:notices": "node --env-file=.env test/notices.mysql.cjs",
     "test:profile": "node --env-file=.env test/profile.mysql.cjs",
+    "test:rewards": "node --env-file=.env test/rewards.mysql.cjs",
     "dev": "node --watch --env-file=.env src/server.js",
     "test": "node --test test/*.test.js",
     "typecheck": "tsc -p jsconfig.json"
