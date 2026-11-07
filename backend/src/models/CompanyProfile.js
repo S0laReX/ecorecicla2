@@ -7,7 +7,7 @@ const schema=z.object({userId:ownerIdSchema,taxIdentifier:z.string().regex(/^[A-
 exports.readPendingCount=async(search='',connection)=>modelGuard('CompanyProfile','readPendingCount',async()=>{
  const companyProfileQuery=`SELECT COUNT(CP.id) AS companyProfileCount FROM CompanyProfile CP
  JOIN User U ON U.id = CP.userId WHERE U.roleCode = ? AND U.verificationStatus = ? AND U.deletedAt IS NULL
- AND (? = '' OR U.displayName LIKE ? OR CP.taxIdentifier LIKE ?)`;
+ AND (? = '' OR U.displayName LIKE ? OR CONVERT(CP.taxIdentifier USING utf8mb4) COLLATE utf8mb4_bin LIKE ?)`;
  const searchPattern=`%${search}%`;const companyProfileParams=['COMPANY','PENDING',search,searchPattern,searchPattern];
  const [profiles]=await connection.execute(companyProfileQuery,companyProfileParams);
  return Number(/** @type {import('mysql2').RowDataPacket[]} */(profiles)[0].companyProfileCount);
@@ -21,7 +21,7 @@ exports.findPending=async(search,page,limit,connection)=>modelGuard('CompanyProf
  U.createdAt AS companyCreatedAt
  FROM CompanyProfile CP JOIN User U ON U.id = CP.userId
  WHERE U.roleCode = ? AND U.verificationStatus = ? AND U.deletedAt IS NULL
- AND (? = '' OR U.displayName LIKE ? OR CP.taxIdentifier LIKE ?)
+ AND (? = '' OR U.displayName LIKE ? OR CONVERT(CP.taxIdentifier USING utf8mb4) COLLATE utf8mb4_bin LIKE ?)
  ORDER BY U.createdAt ASC, U.id ASC LIMIT ? OFFSET ?`;
  const searchPattern=`%${search}%`;const companyProfileParams=['COMPANY','PENDING',search,searchPattern,searchPattern,String(limit),String((page-1)*limit)];
  const [profiles]=await connection.execute(companyProfileQuery,companyProfileParams);
